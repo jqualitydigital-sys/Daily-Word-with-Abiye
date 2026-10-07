@@ -1,0 +1,707 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Word for Today</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#FBF7EF; --navy:#1B2A41; --navy2:#2C4366; --gold:#C8963E; --gold-l:#E3BE76; --gold-d:#8F6416;
+  --ink:#1B2A41; --soft:#5B6779; --line:rgba(27,42,65,.14); --ok:#2F6B4F; --err:#9B2C2C;
+  --s1:#14213A; --s2:#3B5A8C; --s3:#E0A96D;   /* sky colours, changed daily */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{font-family:'Nunito',system-ui,sans-serif;color:#fff;background:var(--s1);overflow:hidden}
+.serif{font-family:'Cormorant Garamond',Georgia,serif}
+
+/* ===== Animated sky ===== */
+.sky{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,var(--s1) 0%,var(--s2) 58%,var(--s3) 100%);background-size:100% 130%;
+  animation:skyShift 40s ease-in-out infinite alternate}
+@keyframes skyShift{from{background-position:50% 0}to{background-position:50% 100%}}
+.sun{position:fixed;left:50%;bottom:-22vmin;width:90vmin;height:90vmin;margin-left:-45vmin;z-index:1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,236,190,.85) 0%,rgba(255,214,140,.45) 30%,transparent 68%);animation:sunPulse 9s ease-in-out infinite alternate}
+@keyframes sunPulse{from{opacity:.7;transform:scale(.95)}to{opacity:1;transform:scale(1.06)}}
+.rays{position:fixed;left:50%;bottom:-60vmax;width:120vmax;height:120vmax;margin-left:-60vmax;z-index:1;pointer-events:none;opacity:.22;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,240,200,.9) 0deg 3deg,transparent 3deg 14deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0%,transparent 60%);mask-image:radial-gradient(circle,#000 0%,transparent 60%);
+  animation:spin 160s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cloud{position:fixed;z-index:2;pointer-events:none;border-radius:50%;filter:blur(22px);opacity:.5;
+  background:radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.9),rgba(255,255,255,0) 70%);animation:drift linear infinite}
+.c1{top:10%;width:46vw;height:16vh;animation-duration:95s;left:-50vw}
+.c2{top:32%;width:58vw;height:20vh;animation-duration:140s;animation-delay:-60s;left:-60vw;opacity:.35}
+.c3{top:62%;width:50vw;height:17vh;animation-duration:115s;animation-delay:-30s;left:-55vw;opacity:.4}
+.c4{top:80%;width:62vw;height:19vh;animation-duration:170s;animation-delay:-100s;left:-65vw;opacity:.3}
+@keyframes drift{to{transform:translateX(230vw)}}
+.stars{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.stars i{position:absolute;bottom:-20px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(227,190,118,.7) 60%,transparent 70%);opacity:0;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:.9}90%{opacity:.4}100%{transform:translateY(-110vh) translateX(40px);opacity:0}}
+.scrim{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse 75% 60% at 50% 48%,rgba(8,16,34,.5),transparent 75%)}
+
+/* ===== Splash ===== */
+#splash{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;
+  background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(227,190,118,.35),transparent 70%),linear-gradient(170deg,#14213A,#22365A 65%,#2F4A74);color:#FBF7EF;
+  transition:opacity 1.2s ease,visibility 1.2s}
+#splash.hide{opacity:0;visibility:hidden}
+#splash .cross{font-size:54px;color:var(--gold-l);animation:glow 3s ease-in-out infinite}
+#splash h1{font-size:clamp(38px,8vw,66px);margin:10px 0 6px;font-weight:600}
+#splash p{max-width:420px;color:rgba(251,247,239,.82);margin-bottom:26px}
+@keyframes glow{0%,100%{text-shadow:0 0 18px rgba(227,190,118,.45)}50%{text-shadow:0 0 40px rgba(227,190,118,.95)}}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.chip{border:2px solid rgba(251,247,239,.35);background:rgba(255,255,255,.08);color:#FBF7EF;padding:9px 16px;border-radius:999px;font:700 14px 'Nunito',sans-serif;cursor:pointer}
+.chip.on{background:var(--gold-l);border-color:var(--gold-l);color:#2A1D05}
+.btn{font-family:inherit;font-weight:700;font-size:17px;border:0;cursor:pointer;border-radius:999px;padding:14px 32px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-l));color:#2A1D05;box-shadow:0 10px 26px rgba(0,0,0,.28);transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.navy{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#FBF7EF}
+.btn[disabled]{opacity:.6;cursor:wait}
+.link{background:none;border:0;color:rgba(251,247,239,.75);margin-top:18px;cursor:pointer;font:inherit;text-decoration:underline}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--gold-l);outline-offset:3px}
+
+/* ===== One-screen layout ===== */
+.app{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;padding:max(14px,env(safe-area-inset-top)) 20px max(16px,env(safe-area-inset-bottom))}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-size:24px;font-weight:600;display:flex;gap:8px;align-items:center;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+.brand span{color:var(--gold-l)}
+.musicbar{display:flex;gap:8px;align-items:center}
+.pill{border:1px solid rgba(255,255,255,.35);background:rgba(15,27,45,.35);backdrop-filter:blur(8px);color:#fff;padding:8px 14px;border-radius:999px;font:600 13.5px 'Nunito',sans-serif;cursor:pointer}
+.pill option{color:#1B2A41}
+.stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;max-width:860px;width:100%;margin:0 auto;overflow-y:auto;padding:8px 0}
+.greet{font-size:clamp(24px,3.6vw,34px);font-style:italic;font-weight:500;color:#FFF3D6;margin-bottom:8px;text-shadow:0 2px 14px rgba(0,0,0,.55)}
+.date{font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:12.5px;color:var(--gold-l);text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.theme{margin-top:6px;font-size:14px;color:rgba(255,255,255,.85);text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.float{animation:floaty 8s ease-in-out infinite;margin-top:clamp(10px,2.4vh,22px)}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.msg{font-size:clamp(26px,5.2vw,52px);line-height:1.22;font-weight:600;text-shadow:0 2px 18px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.3)}
+.msg .w{opacity:0;display:inline-block;transform:translateY(12px);animation:wordin 1.5s ease forwards}
+@keyframes wordin{to{opacity:1;transform:none}}
+.rule{width:64px;height:2px;margin:clamp(14px,2.8vh,26px) auto;background:linear-gradient(90deg,transparent,var(--gold-l),transparent);opacity:0;transition:opacity 2s}
+.verse{opacity:0;transition:opacity 2.2s}
+.show{opacity:1}
+.verse q{display:block;quotes:none;font-size:clamp(17px,2.6vw,27px);line-height:1.45;font-style:italic;font-weight:500;color:#FFF3D6;max-width:760px;margin:0 auto;
+  animation:flash 4.5s ease-in-out infinite;text-shadow:0 2px 14px rgba(0,0,0,.55)}
+.verse.long q{font-size:clamp(15px,2.1vw,21px);line-height:1.4}
+@keyframes flash{0%,100%{opacity:.65;text-shadow:0 2px 14px rgba(0,0,0,.55)}50%{opacity:1;text-shadow:0 0 22px rgba(255,214,140,.95),0 2px 12px rgba(0,0,0,.5)}}
+.verse cite{display:block;margin-top:12px;font:700 14.5px 'Nunito',sans-serif;letter-spacing:.12em;color:var(--gold-l);font-style:normal;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.reflect{margin-top:clamp(10px,2vh,20px);font-size:14px;color:rgba(255,255,255,.82);max-width:560px;text-shadow:0 1px 8px rgba(0,0,0,.6);opacity:0;transition:opacity 2.5s}
+.reflect b{letter-spacing:.14em;text-transform:uppercase;font-size:11.5px;color:var(--gold-l);margin-right:6px}
+.bottom{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding-top:8px}
+.bottom .btn{font-size:15.5px;padding:12px 24px}
+.ghost{background:rgba(15,27,45,.4)!important;color:#fff!important;border:1px solid rgba(255,255,255,.4)!important;backdrop-filter:blur(8px);box-shadow:none!important}
+
+/* ===== Message and lesson panes (the lesson follows the message automatically) ===== */
+.pane{display:flex;flex-direction:column;align-items:center;width:100%;transition:opacity 1.3s ease}
+.pane.fade{opacity:0}
+.msg.lesson{font-size:clamp(22px,4.3vw,42px);line-height:1.28}
+/* ===== Modals, form, toast ===== */
+.lesson-tag{display:block;text-align:center;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:12px;color:var(--gold-d)}
+.lesson-text{font-size:clamp(20px,3.6vw,25px);line-height:1.5;text-align:center;margin:12px 0 18px;font-weight:500}
+.support{background:linear-gradient(135deg,#FFFDF7,#F6EACB);border:1px solid rgba(200,150,62,.55);border-radius:16px;padding:16px 18px;text-align:center}
+.support q{display:block;quotes:none;font-size:clamp(17px,3vw,20px);line-height:1.45;font-style:italic;color:var(--ink)}
+.support cite{display:block;margin-top:8px;font:700 13px 'Nunito',sans-serif;letter-spacing:.1em;color:var(--gold-d);font-style:normal}
+.lesson-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.lesson-actions .btn{font-size:15px;padding:11px 22px}
+.modal{position:fixed;inset:0;background:rgba(10,20,36,.62);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:250;padding:16px}
+.modal.show{display:flex;opacity:1}
+.box{background:linear-gradient(180deg,#FFFEFB,#F7F0E1);color:var(--ink);border-radius:24px;padding:clamp(22px,4vw,34px);max-width:540px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.4);position:relative}
+.box h3{font-size:clamp(26px,5vw,34px);text-align:center;font-weight:600;padding:0 22px}
+.box .sub{text-align:center;color:var(--soft);margin:4px auto 10px;font-size:14.5px}
+.x{position:absolute;right:14px;top:10px;border:0;background:none;font-size:28px;cursor:pointer;color:var(--soft);line-height:1}
+label{display:block;font-weight:700;font-size:13.5px;margin:12px 0 5px}
+input[type=text],input[type=email],textarea{width:100%;font:inherit;color:var(--ink);padding:12px 15px;border-radius:13px;border:1.5px solid var(--line);background:#fff}
+textarea{min-height:110px;resize:vertical}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:13px;color:var(--soft);margin-top:14px}
+.check input{margin-top:3px;width:18px;height:18px;accent-color:var(--navy)}
+.hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+.formfoot{text-align:center;margin-top:18px}
+.formfoot .btn{box-shadow:0 10px 24px rgba(27,42,65,.3)}
+#status{margin-top:12px;font-weight:700;font-size:14.5px;text-align:center}
+#status.ok,#status.err{padding:11px 14px;border-radius:12px}
+#status.ok{background:#E8F3EC;color:var(--ok)}#status.err{background:#FBEAEA;color:var(--err)}
+#copyArea{min-height:140px;margin:12px 0}
+#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);background:#1B2A41;color:#fff;padding:13px 22px;border-radius:14px;font-weight:700;
+  box-shadow:0 12px 30px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:all .35s;z-index:300;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}#toast.err{background:#9B2C2C}#toast.ok{background:#2F6B4F}
+
+@media (max-width:560px){.brand{font-size:20px}.pill{padding:7px 11px;font-size:12.5px}.date{font-size:11.5px}}
+@media (max-height:640px){.reflect{display:none}.rule{margin:10px auto}}
+@media (prefers-reduced-motion:reduce){
+  .sky,.sun,.rays,.cloud,.stars i,.float,.verse q,#splash .cross{animation:none!important}
+  .msg .w{animation-duration:.01s!important;animation-delay:0s!important}
+}
+</style>
+
+<div class="sky"></div><div class="sun"></div><div class="rays"></div>
+<div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="cloud c4"></div>
+<div class="stars" id="stars" aria-hidden="true"></div>
+<div class="scrim"></div>
+
+<div id="splash" role="dialog" aria-label="Welcome">
+  <div class="cross" aria-hidden="true">✝</div>
+  <h1 class="serif">Word for Today</h1>
+  <p>Take a quiet moment. Your word of hope is ready, read to you in a warm male voice with uplifting music.</p>
+  <button class="btn" id="enterBtn">Enter and listen 🎧</button>
+  <button class="link" id="silentBtn">Enter without sound</button>
+</div>
+
+<div class="app">
+  <div class="top">
+    <div class="brand serif"><span>✦</span> Daily Word with Abiye</div>
+    <div class="musicbar">
+      <button class="pill" id="listenBtn" type="button" aria-label="Listen again">▶ Listen</button>
+      <button class="pill" id="voiceBtn" type="button" aria-pressed="false" aria-label="Turn voice on or off">🔊 Voice on</button>
+      <button class="pill" id="musicBtn" type="button" aria-pressed="true" aria-label="Turn music on or off">🎵 Music off</button>
+    </div>
+  </div>
+
+  <main class="stage">
+   <div class="pane" id="pane1">
+    <div class="greet serif" id="greet"></div>
+    <div class="date" id="date"></div>
+    <div class="theme" id="theme"></div>
+    <div class="float"><p class="msg serif" id="msg" aria-live="polite"></p></div>
+    <div class="rule" id="rule"></div>
+    <div class="verse" id="verse"><q class="serif" id="vtext"></q><cite id="vref"></cite></div>
+    <p class="reflect" id="reflectWrap"><b>Reflect</b><span id="reflect"></span></p>
+   </div>
+   <div class="pane" id="pane2" hidden>
+    <div class="date">Today's lesson</div>
+    <div class="theme" id="lessonTheme"></div>
+    <div class="float"><p class="msg lesson serif" id="lessonText"></p></div>
+    <div class="rule" id="rule2"></div>
+    <div class="verse" id="verse2"><q class="serif" id="lvtext"></q><cite id="lvref"></cite></div>
+   </div>
+  </main>
+
+  <div class="bottom">
+    <button class="btn ghost" id="lessonBtn" type="button">💡 Today's lesson</button>
+  </div>
+</div>
+
+<!-- Prayer request pop-up -->
+<div class="modal" id="prayModal" role="dialog" aria-label="Prayer request">
+  <div class="box">
+    <button class="x" id="closePray" type="button" aria-label="Close">×</button>
+    <h3 class="serif">Share Your Prayer Request</h3>
+    <p class="sub">Going through something hard? Tell us how we can pray with you.</p>
+    <form id="form" novalidate onsubmit="return false">
+      <label for="name">Your name</label>
+      <input type="text" id="name" name="name" maxlength="100" autocomplete="name" required>
+      <label for="email">Your email</label>
+      <input type="email" id="email" name="email" maxlength="200" autocomplete="email" required>
+      <label for="request">What are you going through?</label>
+      <textarea id="request" name="request" maxlength="2000" required placeholder="Share as much or as little as you like…"></textarea>
+      <input class="hp" type="text" id="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="check"><input type="checkbox" id="consent" required>
+        <span>I agree to share my name, email and request so that you can pray for me and contact me.</span></label>
+      <div class="formfoot"><button class="btn navy" id="sendBtn" type="button">Send my request 🙏</button></div>
+      <div id="status" role="status"></div>
+    </form>
+  </div>
+</div>
+
+<!-- Copy fallback -->
+<div class="modal" id="copyModal" role="dialog" aria-label="Copy today's word"><div class="box">
+  <b>Copy today's word</b>
+  <textarea id="copyArea" readonly></textarea>
+  <div class="formfoot"><button class="btn navy" id="closeModal" type="button">Done</button></div>
+</div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Supabase config (public anon key is safe to expose; RLS allows INSERT only) ---------- */
+const SUPABASE_URL = "https://fuczfdawpdxyovgwizox.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Y3pmZGF3cGR4eW92Z3dpem94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0NjA1MzksImV4cCI6MjEwMzAzNjUzOX0.kDbA0y-th8Z8KbyMC-e8ffM6zo-ffwodhaiBDkb1tuI";
+
+const DAYS = [
+["Fear","You are not alone in this. God is right beside you, ready to hold you up.","Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness.","Isaiah 41:10"],
+["Provision","Whatever today holds, you are cared for by a faithful Shepherd.","The LORD is my shepherd; I shall not want.","Psalm 23:1"],
+["Strength","You are stronger than you feel, because your strength comes from Christ.","I can do all things through Christ which strengtheneth me.","Philippians 4:13"],
+["Hope","God has good plans for your life, even when today is hard to understand.","For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end.","Jeremiah 29:11"],
+["Courage","Take one brave step today. God goes with you everywhere you go.","Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.","Joshua 1:9"],
+["Refuge","When life feels heavy, run to Him. He is a safe place.","God is our refuge and strength, a very present help in trouble.","Psalm 46:1"],
+["Rest","You don't have to carry everything alone. Come and rest.","Come unto me, all ye that labour and are heavy laden, and I will give you rest.","Matthew 11:28"],
+["Purpose","Even the messy parts of your story are being woven into something good.","And we know that all things work together for good to them that love God, to them who are the called according to his purpose.","Romans 8:28"],
+["Trust","You don't need to figure it all out. Trust Him with the next step.","Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.","Proverbs 3:5-6"],
+["Help","Lift your eyes today. Your help is coming from the One who made everything.","I will lift up mine eyes unto the hills, from whence cometh my help. My help cometh from the LORD, which made heaven and earth.","Psalm 121:1-2"],
+["Renewal","Tired? Wait on Him. He renews strength that you thought was gone.","But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.","Isaiah 40:31"],
+["Comfort","If your heart is hurting, God is closer than you think.","The LORD is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit.","Psalm 34:18"],
+["Peace","Let Christ's peace settle your heart today. It is a gift, not something you earn.","Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.","John 14:27"],
+["Light","There is light ahead. You have no need to fear the dark.","The LORD is my light and my salvation; whom shall I fear? the LORD is the strength of my life; of whom shall I be afraid?","Psalm 27:1"],
+["Grace","You don't have to be perfect. His grace is enough for today.","And he said unto me, My grace is sufficient for thee: for my strength is made perfect in weakness.","2 Corinthians 12:9"],
+["Joy","This season of tears will pass. Morning is on its way.","...weeping may endure for a night, but joy cometh in the morning.","Psalm 30:5"],
+["Worry","Hand your worries to God one by one. He truly cares about each of them.","Casting all your care upon him; for he careth for you.","1 Peter 5:7"],
+["Anxiety","Turn your worries into prayers, and watch peace step in.","Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God. And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus.","Philippians 4:6-7"],
+["Presence","He will never leave you, not on your best day or your worst.","Be strong and of a good courage, fear not, nor be afraid of them: for the LORD thy God, he it is that doth go with thee; he will not fail thee, nor forsake thee.","Deuteronomy 31:6"],
+["Burdens","Put the weight down. God is strong enough to carry it and carry you.","Cast thy burden upon the LORD, and he shall sustain thee: he shall never suffer the righteous to be moved.","Psalm 55:22"],
+["New Beginnings","Today is a fresh page. His mercies are brand new this morning.","It is of the LORD's mercies that we are not consumed, because his compassions fail not. They are new every morning: great is thy faithfulness.","Lamentations 3:22-23"],
+["Hope","Ask God to fill you with joy and peace today. He loves to answer that prayer.","Now the God of hope fill you with all joy and peace in believing, that ye may abound in hope, through the power of the Holy Ghost.","Romans 15:13"],
+["Safety","You are held in a place no storm can reach.","He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty.","Psalm 91:1"],
+["Trials","The waters may rise and the fire may burn, but you will not face it alone.","When thou passest through the waters, I will be with thee; and through the rivers, they shall not overflow thee: when thou walkest through the fire, thou shalt not be burned; neither shall the flame kindle upon thee.","Isaiah 43:2"],
+["Today","Handle today with today's strength. Tomorrow can wait.","Take therefore no thought for the morrow: for the morrow shall take thought for the things of itself. Sufficient unto the day is the evil thereof.","Matthew 6:34"],
+["Desires","Draw close to God, and watch Him shape the dreams in your heart.","Delight thyself also in the LORD; and he shall give thee the desires of thine heart.","Psalm 37:4"],
+["Gratitude","Find one thing to be glad about today. It is a gift from God.","This is the day which the LORD hath made; we will rejoice and be glad in it.","Psalm 118:24"],
+["Goodness","God is good, even on days when everything feels uncertain.","The LORD is good, a strong hold in the day of trouble; and he knoweth them that trust in him.","Nahum 1:7"],
+["Weakness","When your strength runs out, God's strength is just beginning.","My flesh and my heart faileth: but God is the strength of my heart, and my portion for ever.","Psalm 73:26"],
+["Faith","Faith is believing before you see. Keep believing today.","Now faith is the substance of things hoped for, the evidence of things not seen.","Hebrews 11:1"],
+["Perseverance","Don't quit. Every seed you've sown in faith will bring a harvest.","And let us not be weary in well doing: for in due season we shall reap, if we faint not.","Galatians 6:9"],
+["Healing","God sees every wound and gently heals what hurts.","He healeth the broken in heart, and bindeth up their wounds.","Psalm 147:3"],
+["Victory","Troubles are real, but Jesus has already overcome them.","These things I have spoken unto you, that in me ye might have peace. In the world ye shall have tribulation: but be of good cheer; I have overcome the world.","John 16:33"],
+["Patience","Keep praying and keep hoping. Your waiting is not wasted.","Rejoicing in hope; patient in tribulation; continuing instant in prayer.","Romans 12:12"],
+["Love","You are loved so much that God sings over you.","The LORD thy God in the midst of thee is mighty; he will save, he will rejoice over thee with joy; he will rest in his love, he will joy over thee with singing.","Zephaniah 3:17"],
+["Stillness","Be still for a minute. Your soul can find rest in God alone.","Truly my soul waiteth upon God: from him cometh my salvation.","Psalm 62:1"],
+["Prayer","Keep asking, keep seeking, keep knocking. The door will open.","Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you.","Matthew 7:7"],
+["Wisdom","Not sure what to do? Ask God. He gives wisdom freely and doesn't scold.","If any of you lack wisdom, let him ask of God, that giveth to all men liberally, and upbraideth not; and it shall be given him.","James 1:5"],
+["Joy","Joy is found in His presence. Spend a quiet moment there today.","Thou wilt shew me the path of life: in thy presence is fulness of joy; at thy right hand there are pleasures for evermore.","Psalm 16:11"],
+["Peace","A mind fixed on God is a mind kept in peace.","Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.","Isaiah 26:3"],
+["Confidence","Fear is not from God. He gave you power, love and a clear mind.","For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.","2 Timothy 1:7"],
+["Fear","Afraid? That's okay. Just choose to trust Him right now.","What time I am afraid, I will trust in thee.","Psalm 56:3"],
+["Love","Nothing, absolutely nothing, can pull you away from God's love.","For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come, nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord.","Romans 8:38-39"],
+["Guidance","You don't need to see the whole road, just enough light for the next step.","Thy word is a lamp unto my feet, and a light unto my path.","Psalm 119:105"],
+["Rescue","God hears your cry and lifts you out of the pit.","I waited patiently for the LORD; and he inclined unto me, and heard my cry. He brought me up also out of an horrible pit, out of the miry clay, and set my feet upon a rock, and established my goings.","Psalm 40:1-2"],
+["Getting Up","A fall is not the end. With God's light, you will rise again.","Rejoice not against me, O mine enemy: when I fall, I shall arise; when I sit in darkness, the LORD shall be a light unto me.","Micah 7:8"],
+["Battles","Some battles aren't yours to fight. Let God handle this one.","The LORD shall fight for you, and ye shall hold your peace.","Exodus 14:14"],
+["Song","Let gratitude become a song. Your heart will lift.","The LORD is my strength and my shield; my heart trusted in him, and I am helped: therefore my heart greatly rejoiceth; and with my song will I praise him.","Psalm 28:7"],
+["Thankfulness","Thank God in the middle of it all. Gratitude opens the heart to hope.","Rejoice evermore. Pray without ceasing. In every thing give thanks: for this is the will of God in Christ Jesus concerning you.","1 Thessalonians 5:16-18"],
+["Sleep","Lay down your day. You can sleep peacefully tonight because He keeps watch.","I will both lay me down in peace, and sleep: for thou, LORD, only makest me dwell in safety.","Psalm 4:8"],
+["Protection","Say His name. It is a strong tower and you are safe inside.","The name of the LORD is a strong tower: the righteous runneth into it, and is safe.","Proverbs 18:10"],
+["Hurting","If you feel crushed, God is a refuge made for you.","The LORD also will be a refuge for the oppressed, a refuge in times of trouble.","Psalm 9:9"],
+["Tears","Your tears are seen. They are seeds, and joy will grow from them.","They that sow in tears shall reap in joy.","Psalm 126:5"],
+["Steady Feet","God can steady your steps, even on steep and difficult ground.","The LORD God is my strength, and he maketh my feet like hinds' feet, and he will make me to walk upon mine high places.","Habakkuk 3:19"],
+["Unfinished","God is not finished with you. He will complete what He started.","The LORD will perfect that which concerneth me: thy mercy, O LORD, endureth for ever: forsake not the works of thine own hands.","Psalm 138:8"],
+["Possible","What looks impossible to you is not impossible to God.","But Jesus beheld them, and said unto them, With men this is impossible; but with God all things are possible.","Matthew 19:26"],
+["Deliverance","Bring Him your fears. He listens, and He delivers.","I sought the LORD, and he heard me, and delivered me from all my fears.","Psalm 34:4"],
+["Nearness","Call on Him sincerely and He is already near.","The LORD is nigh unto all them that call upon him, to all that call upon him in truth.","Psalm 145:18"],
+["Discovery","Call out to God. He promises to show you things you never imagined.","Call unto me, and I will answer thee, and shew thee great and mighty things, which thou knowest not.","Jeremiah 33:3"],
+["Reward","Keep going. Your hard work in God's name will be rewarded.","Be ye strong therefore, and let not your hands be weak: for your work shall be rewarded.","2 Chronicles 15:7"],
+["Plans","Commit your plans to God, and watch your thoughts become steady.","Commit thy works unto the LORD, and thy thoughts shall be established.","Proverbs 16:3"],
+["Growth","Hard seasons grow something in you: patience, then character, then hope.","And not only so, but we glory in tribulations also: knowing that tribulation worketh patience; And patience, experience; and experience, hope:","Romans 5:3-4"],
+["Mercy","Mercy never runs out. Say thank you to God for His kindness today.","O give thanks unto the LORD, for he is good: for his mercy endureth for ever.","Psalm 107:1"],
+["Salvation","With God as your strength and song, you can face the day unafraid.","Behold, God is my salvation; I will trust, and not be afraid: for the LORD JEHOVAH is my strength and my song; he also is become my salvation.","Isaiah 12:2"],
+["Blessings","Count His kindnesses today. There are more than you think.","Bless the LORD, O my soul, and forget not all his benefits: Who forgiveth all thine iniquities; who healeth all thy diseases;","Psalm 103:2-3"],
+["Grief","Mourning is not weakness. God promises comfort to those who grieve.","Blessed are they that mourn: for they shall be comforted.","Matthew 5:4"],
+["Racing Thoughts","When your mind is crowded with worries, God's comfort calms your soul.","In the multitude of my thoughts within me thy comforts delight my soul.","Psalm 94:19"],
+["Held","God holds your hand. You can walk forward without fear.","For I the LORD thy God will hold thy right hand, saying unto thee, Fear not; I will help thee.","Isaiah 41:13"],
+["Fortress","God is your rock. Lean on Him; He won't give way.","The LORD is my rock, and my fortress, and my deliverer; my God, my strength, in whom I will trust; my buckler, and the horn of my salvation, and my high tower.","Psalm 18:2"],
+["Waiting","Waiting is hard, but hope in His word will carry you through.","I wait for the LORD, my soul doth wait, and in his word do I hope.","Psalm 130:5"],
+["Timing","God's timing is perfect. Beauty is coming in His season.","He hath made every thing beautiful in his time:","Ecclesiastes 3:11"],
+["Affliction","His word has comforted people in their darkest hours, and it can comfort you too.","This is my comfort in my affliction: for thy word hath quickened me.","Psalm 119:50"],
+["Not in Vain","What you do for God is never wasted. Stay steady.","Therefore, my beloved brethren, be ye stedfast, unmoveable, always abounding in the work of the Lord, forasmuch as ye know that your labour is not in vain in the Lord.","1 Corinthians 15:58"],
+["Forgiveness","You are forgiven. Receive it and let go of the guilt.","For thou, Lord, art good, and ready to forgive; and plenteous in mercy unto all them that call upon thee.","Psalm 86:5"],
+["Love Over Fear","God's perfect love is stronger than your fear.","There is no fear in love; but perfect love casteth out fear:","1 John 4:18"],
+["Troubled Heart","Give Jesus your troubled heart. Believe He is able.","Let not your heart be troubled: ye believe in God, believe also in me.","John 14:1"],
+["Faithfulness","Generation after generation has found Him faithful. You will too.","For the LORD is good; his mercy is everlasting; and his truth endureth to all generations.","Psalm 100:5"],
+["Joyful Heart","Laughter and joy are medicine. Let yourself smile today.","A merry heart doeth good like a medicine: but a broken spirit drieth the bones.","Proverbs 17:22"],
+["Confidence","The One who began a good work in you will see it through.","Being confident of this very thing, that he which hath begun a good work in you will perform it until the day of Jesus Christ.","Philippians 1:6"],
+["Courage","Hope in God, and He will strengthen your heart.","Be of good courage, and he shall strengthen your heart, all ye that hope in the LORD.","Psalm 31:24"],
+["Seeking","Start your day looking for Him. Strength follows.","Seek the LORD and his strength, seek his face continually.","1 Chronicles 16:11"],
+["New Things","God is doing something new. Watch for a path where you saw none.","Behold, I will do a new thing; now it shall spring forth; shall ye not know it? I will even make a way in the wilderness, and rivers in the desert.","Isaiah 43:19"],
+["Needs","God knows what you need and has more than enough to supply it.","But my God shall supply all your need according to his riches in glory by Christ Jesus.","Philippians 4:19"],
+["Direction","God will guide you step by step, with His eyes on you.","I will instruct thee and teach thee in the way which thou shalt go: I will guide thee with mine eye.","Psalm 32:8"],
+["Eternal Hope","One day every tear will be wiped away. Hold on to that hope today.","And God shall wipe away all tears from their eyes; and there shall be no more death, neither sorrow, nor crying, neither shall there be any more pain: for the former things are passed away.","Revelation 21:4"],
+["Walking by Faith","You may not see the way, but you can still walk it with God.","(For we walk by faith, not by sight:)","2 Corinthians 5:7"],
+["Belief","Believe. With Him, more is possible than you imagine.","Jesus said unto him, If thou canst believe, all things are possible to him that believeth.","Mark 9:23"],
+["Armor","Stand strong today in the Lord's mighty power, not your own.","Finally, my brethren, be strong in the Lord, and in the power of his might.","Ephesians 6:10"],
+["Blessing","God gives strength to His people and wraps it in peace.","The LORD will give strength unto his people; the LORD will bless his people with peace.","Psalm 29:11"]
+];
+const LESSONS = [["God is not asking you to be fearless. He is promising to be with you. Take one step today, knowing He walks beside you.","Psalm 23:4","Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me;"],["The Shepherd knows what you need before you ask. Trust Him with today and rest in His care.","Matthew 6:8","...for your Father knoweth what things ye have need of, before ye ask him."],["Your strength is not limited to what you feel. Christ gives power for whatever He calls you to do. Say yes to today!","Isaiah 40:29","He giveth power to the faint; and to them that have no might he increaseth strength."],["Your future is not an accident. God is writing a good story, even through chapters you don't understand. Keep hoping!","Proverbs 23:18","For surely there is an end; and thine expectation shall not be cut off."],["Courage is taking the next step while still afraid. God's presence is your reason to be brave. Move forward today!","Psalm 27:14","Wait on the LORD: be of good courage, and he shall strengthen thine heart: wait, I say, on the LORD."],["You don't have to hold yourself together. Run to God and let Him be your shelter. He is never too busy for you.","Psalm 62:8","Trust in him at all times; ye people, pour out your heart before him: God is a refuge for us."],["Jesus invites the tired, not the perfect. Lay down what you're carrying and breathe. His rest is a gift.","Psalm 23:2","He maketh me to lie down in green pastures: he leadeth me beside the still waters."],["Nothing you've been through is wasted in God's hands. He turns even the hard chapters into good. You are being shaped for a purpose!","Genesis 50:20","But as for you, ye thought evil against me; but God meant it unto good,"],["You don't have to understand everything to trust Him. Hand Him the next step and let Him lead.","Psalm 37:5","Commit thy way unto the LORD; trust also in him; and he shall bring it to pass."],["Help is on its way, and it comes from the Maker of heaven and earth. Nothing is too big for Him. Look up today!","Psalm 124:8","Our help is in the name of the LORD, who made heaven and earth."],["Waiting on God is never wasted time. He is renewing you even when you can't feel it. Your strength will return!","Psalm 103:5","Who satisfieth thy mouth with good things; so that thy youth is renewed like the eagle's."],["Your broken heart is not hidden from God. He draws near when you hurt most. You are not alone.","2 Corinthians 1:3","Blessed be God, even the Father of our Lord Jesus Christ, the Father of mercies, and the God of all comfort;"],["Peace from Jesus doesn't depend on your circumstances. Receive it like a gift and let it quiet your heart today.","Colossians 3:15","And let the peace of God rule in your hearts,"],["Darkness never wins when God is near. He lights the next step, and that is all you need. Walk in His light!","John 8:12","I am the light of the world: he that followeth me shall not walk in darkness, but shall have the light of life."],["You are not too weak for God's grace. It is enough for today, and it will be enough tomorrow. Lean on it!","Ephesians 2:8","For by grace are ye saved through faith; and that not of yourselves: it is the gift of God:"],["Your night will end. Joy is already on its way. Hold on, your morning is coming!","Isaiah 61:3","...to give unto them beauty for ashes, the oil of joy for mourning,"],["God cares about every detail that troubles you, big or small. Give each worry to Him and leave it there.","Matthew 6:26","Behold the fowls of the air: for they sow not, neither do they reap, nor gather into barns; yet your heavenly Father feedeth them. Are ye not much better than they?"],["Turn every worry into a prayer. God hears you, and His peace will guard your heart. Start with one prayer right now!","Psalm 34:4","I sought the LORD, and he heard me, and delivered me from all my fears."],["You will never face a day without Him, not your best and not your worst. He is walking right beside you!","Matthew 28:20","...lo, I am with you alway, even unto the end of the world."],["God is strong enough to carry what is crushing you. Cast it on Him and let Him hold you up.","Matthew 11:30","For my yoke is easy, and my burden is light."],["Yesterday's mistakes do not define today. God's mercy is fresh this morning. Begin again with joy!","2 Corinthians 5:17","Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new."],["God is the source of hope, and He loves to fill you up. Ask Him, and expect to overflow!","Psalm 71:14","But I will hope continually, and will yet praise thee more and more."],["In God's shadow you are covered and safe. Whatever storm is outside, you are held. Stay close to Him.","Psalm 32:7","Thou art my hiding place; thou shalt preserve me from trouble; thou shalt compass me about with songs of deliverance."],["You will pass through this, not be destroyed by it. God is with you in the water and the fire. Keep walking!","Deuteronomy 31:8","And the LORD, he it is that doth go before thee; he will be with thee, he will not fail thee, neither forsake thee: fear not, neither be dismayed."],["You only need today's strength for today. Do what you can and let God handle tomorrow. His help is enough!","Deuteronomy 33:25","...as thy days, so shall thy strength be."],["When your heart is anchored in God, your desires are shaped by Him. Keep drawing near and trust Him with your dreams.","Psalm 20:4","Grant thee according to thine own heart, and fulfil all thy counsel."],["Gratitude changes how you see the day. Name one good thing and thank God for it. Joy will follow!","Psalm 100:4","Enter into his gates with thanksgiving, and into his courts with praise: be thankful unto him, and bless his name."],["God's goodness does not pause when life gets hard. He knows you by name and holds you close. Trust Him!","Psalm 34:8","O taste and see that the LORD is good: blessed is the man that trusteth in him."],["Running low is where God's strength begins. Let Him be what you can't be today. He will not let you fall!","Psalm 18:32","It is God that girdeth me with strength, and maketh my way perfect."],["Faith does not need to see the whole road. Keep trusting, and God will meet you at every step!","Matthew 17:20","...If ye have faith as a grain of mustard seed, ye shall say unto this mountain, Remove hence to yonder place; and it shall remove; and nothing shall be impossible unto you."],["Keep sowing, keep praying, keep going. Your harvest is coming at just the right time. Don't stop now!","Hebrews 10:36","For ye have need of patience, that, after ye have done the will of God, ye might receive the promise."],["God sees your wounds and is gentle with every one. Healing may come slowly, but it is coming. Bring Him your hurt.","Jeremiah 30:17","For I will restore health unto thee, and I will heal thee of thy wounds, saith the LORD;"],["Jesus has already won. Your struggle is real, but it will not have the last word. Stand in His victory!","1 John 5:4","For whatsoever is born of God overcometh the world: and this is the victory that overcometh the world, even our faith."],["God is working in the waiting. Keep praying and keep your hope alive. Your answer is not forgotten!","Habakkuk 2:3","...though it tarry, wait for it; because it will surely come, it will not tarry."],["You are not an afterthought. The God of heaven delights in you and sings over you. Let that love settle in!","Jeremiah 31:3","Yea, I have loved thee with an everlasting love: therefore with lovingkindness have I drawn thee."],["In the quiet, God speaks peace. Take one minute to be still and let your soul rest in Him.","Psalm 46:10","Be still, and know that I am God:"],["God loves to hear from you. Keep asking, seeking and knocking. Your prayers are never wasted!","Jeremiah 29:12","Then shall ye call upon me, and ye shall go and pray unto me, and I will hearken unto you."],["Whatever decision is in front of you, God is willing to guide you. Ask Him, and He gives freely. You can move forward in peace.","Proverbs 2:6","For the LORD giveth wisdom: out of his mouth cometh knowledge and understanding."],["Joy is not found in perfect days but in God's presence. Spend a moment with Him today and let joy rise!","Nehemiah 8:10","...the joy of the LORD is your strength."],["Fix your mind on God and watch your peace grow. He keeps the minds that trust Him. Breathe and trust.","Romans 8:6","For to be carnally minded is death; but to be spiritually minded is life and peace."],["Fear does not come from God. He has given you power, love and a clear mind. Walk in that confidence!","Proverbs 3:26","For the LORD shall be thy confidence, and shall keep thy foot from being taken."],["Being afraid does not mean you lack faith. Trusting God in the middle of it is faith. Choose trust right now!","Psalm 118:6","The LORD is on my side; I will not fear: what can man do unto me?"],["Nothing can pull you out of God's hands, not failure, not fear, not your past. You are loved beyond measure!","John 10:28","And I give unto them eternal life; and they shall never perish, neither shall any man pluck them out of my hand."],["You don't need the whole map. God gives enough light for your next step. Keep walking with Him!","Psalm 37:23","The steps of a good man are ordered by the LORD: and he delighteth in his way."],["No pit is too deep for God. He hears your cry and lifts you out. Call to Him today!","Psalm 34:17","The righteous cry, and the LORD heareth, and delivereth them out of all their troubles."],["Falling is not the end of your story. God lifts you and sets you on your feet again. Get up, He is with you!","Proverbs 24:16","For a just man falleth seven times, and riseth up again:"],["This battle is not yours alone. God fights for you while you stand in faith. Rest in that!","Deuteronomy 20:4","For the LORD your God is he that goeth with you, to fight for you against your enemies, to save you."],["Praise lifts a heavy heart. Sing, even if it is quietly. God is your strength and He is near!","Psalm 40:3","And he hath put a new song in my mouth, even praise unto our God:"],["Thank God for what you have, and hope grows for what you are waiting for. Gratitude makes room for joy!","Psalm 136:1","O give thanks unto the LORD; for he is good: for his mercy endureth for ever."],["You can rest because God stays awake. Give Him tonight's worries and sleep in peace.","Psalm 121:4","Behold, he that keepeth Israel shall neither slumber nor sleep."],["You are safe in God's name. Run to Him in every fear. He is a tower that never falls!","Psalm 91:2","I will say of the LORD, He is my refuge and my fortress: my God; in him will I trust."],["God is close to the hurting and the crushed. You are not forgotten. He is your safe place.","Psalm 10:17","LORD, thou hast heard the desire of the humble: thou wilt prepare their heart, thou wilt cause thine ear to hear:"],["Not one tear is wasted. God turns weeping into joy in His time. Keep believing!","Psalm 56:8","Thou tellest my wanderings: put thou my tears into thy bottle: are they not in thy book?"],["God gives you steady steps for steep places. You can climb what looks too high. Trust His strength!","Psalm 18:33","He maketh my feet like hinds' feet, and setteth me upon my high places."],["God finishes what He starts. You are a work in progress, and He is faithful. Be patient with yourself today.","Ephesians 2:10","For we are his workmanship, created in Christ Jesus unto good works,"],["Your situation may look impossible, but nothing is impossible with God. Bring Him the thing you have given up on!","Luke 1:37","For with God nothing shall be impossible."],["God hears the fears you whisper. He answers and sets you free. Seek Him with your whole heart today!","Psalm 34:19","Many are the afflictions of the righteous: but the LORD delivereth him out of them all."],["God is near whenever you call. No long line, no special words. Just call on Him honestly!","James 4:8","Draw nigh to God, and he will draw nigh to you."],["Call to God and He will show you things you never imagined. Expect good surprises. Ask boldly!","Ephesians 3:20","Now unto him that is able to do exceeding abundantly above all that we ask or think, according to the power that worketh in us,"],["Your work for God matters and He sees it. Keep going with strong hands and a faithful heart. Reward is coming!","Hebrews 6:10","For God is not unrighteous to forget your work and labour of love,"],["Give God your plans and watch them find steady ground. Start your day by committing it to Him.","Proverbs 16:9","A man's heart deviseth his way: but the LORD directeth his steps."],["Hard seasons are growing you. Patience, character and hope are being built in you. You are becoming stronger!","James 1:12","Blessed is the man that endureth temptation: for when he is tried, he shall receive the crown of life,"],["God's mercy has no expiry date. Whatever happened yesterday, His kindness is bigger. Say thank you and move forward!","Psalm 103:8","The LORD is merciful and gracious, slow to anger, and plenteous in mercy."],["God is your strength and your song. You can face today without fear. Trust Him and sing!","Exodus 15:2","The LORD is my strength and song, and he is become my salvation:"],["Look back and count His kindness. He has carried you more than you know. Let thankfulness lift you!","Psalm 68:19","Blessed be the Lord, who daily loadeth us with benefits, even the God of our salvation."],["God holds you gently in your grief. He promises comfort to those who mourn. Lean on Him today.","Psalm 30:11","Thou hast turned for me my mourning into dancing: thou hast put off my sackcloth, and girded me with gladness;"],["When your thoughts race, God's comfort slows them. Bring each one to Him and breathe. His peace is enough.","Psalm 23:3","He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake."],["God is holding your hand right now. You can walk forward without fear. He will not let go!","Psalm 73:23","Nevertheless I am continually with thee: thou hast holden me by my right hand."],["God is your rock when everything shakes. Lean your whole weight on Him. He will not give way!","Psalm 62:6","He only is my rock and my salvation: he is my defence; I shall not be moved."],["Waiting is hard, but God is faithful in the wait. Hope in His word and keep your eyes up. He is working!","Lamentations 3:25","The LORD is good unto them that wait for him, to the soul that seeketh him."],["God's timing is perfect, even when it feels late. Beauty is coming in His season. Trust the One who makes all things beautiful!","Psalm 31:15","My times are in thy hand:"],["God's word brings comfort when life hurts. Read it slowly today and let it revive you. You will feel His help!","Psalm 119:76","Let, I pray thee, thy merciful kindness be for my comfort, according to thy word unto thy servant."],["Nothing you do for God is wasted. Stay steady and keep going. Your faithfulness matters!","Colossians 3:23","And whatsoever ye do, do it heartily, as to the Lord, and not unto men;"],["You are forgiven. Receive it fully and let go of the guilt. God is ready and rich in mercy!","1 John 1:9","If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness."],["God's perfect love is stronger than your fear. Rest in being loved. Let it push fear out!","Romans 5:8","But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us."],["Give Jesus your troubled heart and believe He is able. He holds what you cannot. Peace is yours to receive.","Psalm 61:2","...when my heart is overwhelmed: lead me to the rock that is higher than I."],["God has been faithful to every generation, and He will be faithful to you. Look back and see His hand. He won't stop now!","Deuteronomy 7:9","Know therefore that the LORD thy God, he is God, the faithful God, which keepeth covenant and mercy with them that love him and keep his commandments to a thousand generations;"],["Joy is medicine for the soul. Smile, laugh and give thanks today. God is glad to see you happy!","Psalm 126:2","Then was our mouth filled with laughter, and our tongue with singing:"],["God never abandons His work in you. He will complete it. Be confident, you are in good hands!","Philippians 2:13","For it is God which worketh in you both to will and to do of his good pleasure."],["Take heart, God strengthens the hopeful. Keep hoping in Him and your courage will rise!","Psalm 138:3","In the day when I cried thou answeredst me, and strengthenedst me with strength in my soul."],["Start your day seeking God and strength follows. He is never hard to find. Look for Him today!","Jeremiah 29:13","And ye shall seek me, and find me, when ye shall search for me with all your heart."],["God is doing something new in your life. Watch for a path where you saw none. Keep your eyes open!","Isaiah 42:9","Behold, the former things are come to pass, and new things do I declare: before they spring forth I tell you of them."],["God knows what you need and has more than enough. Ask Him and trust Him to provide. You will not lack!","Psalm 34:10","...they that seek the LORD shall not want any good thing."],["God will guide you one step at a time. Listen for His gentle direction and follow it. You are not lost!","Isaiah 30:21","And thine ears shall hear a word behind thee, saying, This is the way, walk ye in it, when ye turn to the right hand, and when ye turn to the left."],["One day every tear will be wiped away. Hold on to that hope today. Your pain will not last forever!","Romans 8:18","For I reckon that the sufferings of this present time are not worthy to be compared with the glory which shall be revealed in us."],["You may not see the way, but God does. Take one faithful step. He will meet you there!","Hebrews 11:6","But without faith it is impossible to please him: for he that cometh to God must believe that he is, and that he is a rewarder of them that diligently seek him."],["Believe, and see what God can do. Bring Him your \"if\" and watch Him answer. Nothing is too hard for Him!","Jeremiah 32:27","Behold, I am the LORD, the God of all flesh: is there any thing too hard for me?"],["Today, stand in God's strength, not your own. He equips you for every challenge. Put on His strength and go!","Psalm 18:39","For thou hast girded me with strength unto the battle:"],["God gives strength to His people and wraps it in peace. Receive both today. You are blessed!","Numbers 6:24-26","The LORD bless thee, and keep thee: The LORD make his face shine upon thee, and be gracious unto thee: The LORD lift up his countenance upon thee, and give thee peace."]];
+const REFLECT = [
+ "What is one thing I can hand over to God today?",
+ "Where have I seen God's kindness this week?",
+ "What worry can I turn into a prayer right now?",
+ "Who could I encourage with this word today?",
+ "What is God asking me to trust Him with?",
+ "What am I thankful for in this moment?",
+ "How can I rest in God's love today?"
+];
+
+
+/* ---------- Pick today's entry (same for everyone, changes at local midnight) ---------- */
+const now = new Date();
+const dayNum = Math.floor((Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()) - Date.UTC(2026,0,1)) / 86400000);
+const idx = ((dayNum % DAYS.length) + DAYS.length) % DAYS.length;
+const entry = DAYS[idx];
+const SKIES = [ // [top, middle, horizon] — a different sky each day
+  ["#14213A","#3B5A8C","#E0A96D"], ["#1F1B3D","#5B4B8A","#E0907A"], ["#0F2C3D","#2A6F86","#A8D5D0"],
+  ["#1A3A63","#4F86C6","#F3D9A4"], ["#0E1A30","#26426B","#C8963E"], ["#2A2140","#6B5B95","#F0B5A0"], ["#10302B","#2F6B5E","#D9C48A"]];
+const sky = SKIES[((dayNum % SKIES.length) + SKIES.length) % SKIES.length];
+const rs = document.documentElement.style; rs.setProperty('--s1',sky[0]); rs.setProperty('--s2',sky[1]); rs.setProperty('--s3',sky[2]);
+
+document.getElementById('date').textContent = now.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('theme').textContent = entry[0];
+document.getElementById('vtext').textContent = "“" + entry[2] + "”";
+document.getElementById('vref').textContent = "— " + entry[3];
+document.getElementById('reflect').textContent = REFLECT[now.getDay()];
+if(entry[2].length > 190) document.getElementById('verse').classList.add('long');
+
+function toast(text,cls){const t=document.getElementById('toast');t.textContent=text;t.className='show '+(cls||'');clearTimeout(toast._t);toast._t=setTimeout(()=>t.className='',4200);}
+
+/* Slow word-by-word reveal, then the verse, then the reflection */
+function revealMessage(){
+  const el = document.getElementById('msg'); el.textContent = '';
+  const words = entry[1].split(' ');
+  words.forEach((word,i)=>{
+    const s = document.createElement('span'); s.className='w'; s.textContent = word;
+    s.style.animationDelay = (i*0.4)+'s';
+    el.appendChild(s); el.appendChild(document.createTextNode(' '));
+  });
+  const total = words.length*0.4 + 1.2;
+  setTimeout(()=>{ document.getElementById('rule').classList.add('show'); document.getElementById('verse').classList.add('show'); }, total*1000);
+  setTimeout(()=>document.getElementById('reflectWrap').classList.add('show'), (total+2.5)*1000);
+}
+function setGreeting(){ document.getElementById('greet').textContent = greeting().replace('.',''); }
+setGreeting();
+function enter(withSound){
+  setGreeting();
+  document.getElementById('splash').classList.add('hide');
+  voiceOn = !!withSound; updateVoiceBtn();
+  if(withSound) startMusic(); else updateMute();
+  setTimeout(revealMessage, withSound ? 5200 : 900);   // words appear as the voice reaches them
+  if(withSound) setTimeout(speakToday, 2200);   // music fades in first, then the voice joins; started after the tap so browsers allow sound
+}
+
+/* Lesson pane: fills in, then fades in after the message */
+(function(){
+  const L = LESSONS[idx];
+  document.getElementById('lessonTheme').textContent = entry[0];
+  document.getElementById('lessonText').textContent = L[0];
+  document.getElementById('lvtext').textContent = "“" + L[2] + "”";
+  document.getElementById('lvref').textContent = "— " + L[1];
+  if(L[2].length > 190) document.getElementById('verse2').classList.add('long');
+})();
+let paneNow = 1, paneTimers = [];
+function revealLesson(extra){
+  const el = document.getElementById('lessonText'); el.textContent = '';
+  const words = LESSONS[idx][0].split(' ');
+  words.forEach((word,i)=>{
+    const sp = document.createElement('span'); sp.className='w'; sp.textContent = word;
+    sp.style.animationDelay = (extra + i*0.4)+'s';
+    el.appendChild(sp); el.appendChild(document.createTextNode(' '));
+  });
+  const total = extra + words.length*0.4 + 1.2;
+  document.getElementById('rule2').classList.remove('show'); document.getElementById('verse2').classList.remove('show');
+  paneTimers.push(setTimeout(()=>{ document.getElementById('rule2').classList.add('show'); document.getElementById('verse2').classList.add('show'); }, total*1000));
+}
+function clearPaneTimers(){ paneTimers.forEach(clearTimeout); paneTimers = []; }
+function setLessonBtn(){ document.getElementById('lessonBtn').textContent = paneNow===1 ? "💡 Today's lesson" : "📖 Today's message"; }
+function showPane(n,opts){
+  if(paneNow === n) return;
+  clearPaneTimers();
+  const from = document.getElementById(n===2?'pane1':'pane2'), to = document.getElementById(n===2?'pane2':'pane1');
+  paneNow = n; setLessonBtn();
+  from.classList.add('fade');
+  paneTimers.push(setTimeout(()=>{
+    from.hidden = true; to.hidden = false; to.classList.add('fade'); void to.offsetWidth; to.classList.remove('fade');
+    if(n===2) revealLesson((opts&&opts.extra)||0.4);
+  },1300));
+}
+function resetPane1(){            // instant switch back to the message (used when replaying)
+  clearPaneTimers(); paneNow = 1; setLessonBtn();
+  document.getElementById('pane2').hidden = true;
+  const p1 = document.getElementById('pane1'); p1.hidden = false; p1.classList.remove('fade');
+}
+document.getElementById('lessonBtn').addEventListener('click',()=>{
+  stopSpeech();                    // a manual switch stops the voice so it never reads the wrong page
+  if(paneNow===1) showPane(2,{extra:.4}); else showPane(1);
+});
+
+/* Floating sparkles */
+(function(){
+  const box = document.getElementById('stars');
+  for(let i=0;i<22;i++){
+    const p = document.createElement('i');
+    p.style.left = Math.random()*100+'%';
+    p.style.animationDuration = (14+Math.random()*16)+'s';
+    p.style.animationDelay = (-Math.random()*20)+'s';
+    const sz = 4+Math.random()*8; p.style.width = p.style.height = sz+'px';
+    box.appendChild(p);
+  }
+})();
+
+/* Prayer pop-up open/close */
+const prayModal = document.getElementById('prayModal');
+document.getElementById('openPray')?.addEventListener('click',()=>{ prayModal.classList.add('show'); setTimeout(()=>document.getElementById('name').focus(),50); });
+document.getElementById('closePray').addEventListener('click',()=>prayModal.classList.remove('show'));
+prayModal.addEventListener('click',e=>{ if(e.target===prayModal) prayModal.classList.remove('show'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ prayModal.classList.remove('show'); document.getElementById('copyModal').classList.remove('show'); } });
+
+/* ---------- Gentle background music (generated in the browser, no audio files needed) ---------- */
+const N = {C2:65.41,D2:73.42,F2:87.31,G2:98,A2:110,B2:123.47,C3:130.81,E3:164.81,F3:174.61,G3:196,A3:220,B3:246.94,
+  C4:261.63,Cs4:277.18,D4:293.66,E4:329.63,F4:349.23,Fs4:369.99,G4:392,A4:440,B4:493.88,C5:523.25,D5:587.33,E5:659.25,
+  Fs5:739.99,G5:783.99,A5:880,C6:1046.5};
+const MOODS = {
+  worship:{len:9, padVol:.07, bassVol:.20, melStep:2.2, melVol:.06, melType:'sine', noise:0, chords:[
+    {bass:N.C3,notes:[N.C4,N.E4,N.G4],mel:[N.E5,N.G5,N.D5,N.C5]},
+    {bass:N.A2,notes:[N.C4,N.E4,N.A4],mel:[N.E5,N.C5,N.D5,N.A4]},
+    {bass:N.F2,notes:[N.A3,N.C4,N.F4],mel:[N.C5,N.A4,N.G4,N.E5]},
+    {bass:N.G2,notes:[N.B3,N.D4,N.G4],mel:[N.D5,N.B4,N.G5,N.D5]}]},
+  peaceful:{len:12, padVol:.06, bassVol:.16, melStep:4, melVol:.035, melType:'sine', noise:.05, chords:[
+    {bass:N.D2,notes:[N.D4,N.Fs4,N.A4,N.E5],mel:[N.Fs5,N.A5,N.E5]},
+    {bass:N.B2,notes:[N.B3,N.D4,N.Fs4,N.A4],mel:[N.D5,N.Fs5,N.A5]},
+    {bass:N.G2,notes:[N.B3,N.D4,N.Fs4,N.G4],mel:[N.A5,N.Fs5,N.D5]},
+    {bass:N.A2,notes:[N.Cs4,N.E4,N.A4,N.B4],mel:[N.E5,N.A5,N.Fs5]}]},
+  inspiring:{len:6, padVol:.085, bassVol:.22, melStep:.75, melVol:.055, melType:'triangle', noise:0, chords:[
+    {bass:N.C3,notes:[N.C4,N.E4,N.G4],mel:[N.C5,N.E5,N.G5,N.E5,N.C5,N.E5,N.G5,N.C6]},
+    {bass:N.G2,notes:[N.B3,N.D4,N.G4],mel:[N.B4,N.D5,N.G5,N.D5,N.B4,N.D5,N.G5,N.D5]},
+    {bass:N.A2,notes:[N.C4,N.E4,N.A4],mel:[N.C5,N.E5,N.A5,N.E5,N.C5,N.E5,N.A5,N.E5]},
+    {bass:N.F2,notes:[N.A3,N.C4,N.F4],mel:[N.C5,N.F4*2,N.A5,N.F4*2,N.C5,N.F4*2,N.A5,N.C6]}]}
+};
+let ctx, master, bus, sess = null, musicOn = false, schedTimer = null, nextChordTime = 0, chordIdx = 0, mood = 'inspiring';
+const MUSIC_LEVEL = .28, DUCK_LEVEL = .08;   // music is turned down while the voice speaks
+
+function makeReverb(c){
+  const len = c.sampleRate*4.5, buf = c.createBuffer(2,len,c.sampleRate);
+  for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6);}
+  const conv = c.createConvolver(); conv.buffer = buf; return conv;
+}
+function initAudio(){
+  if(ctx) return;
+  ctx = new (window.AudioContext||window.webkitAudioContext)();
+  master = ctx.createGain(); master.gain.value = 0;
+  const dry = ctx.createGain(); dry.gain.value = .55;
+  const wet = ctx.createGain(); wet.gain.value = .9;
+  const rev = makeReverb(ctx);
+  bus = ctx.createBiquadFilter(); bus.type='lowpass'; bus.frequency.value=2200;
+  bus.connect(dry); bus.connect(rev); rev.connect(wet);
+  dry.connect(master); wet.connect(master); master.connect(ctx.destination);
+}
+function newSession(){ // lets us fade one mood out while the next fades in
+  const old = sess;
+  if(old){ old.g.gain.cancelScheduledValues(ctx.currentTime); old.g.gain.setValueAtTime(old.g.gain.value,ctx.currentTime);
+    old.g.gain.linearRampToValueAtTime(0,ctx.currentTime+2); setTimeout(()=>{try{old.stop&&old.stop()}catch(e){} old.g.disconnect()},12000); }
+  const g = ctx.createGain(); g.gain.value = 0; g.connect(bus);
+  g.gain.setValueAtTime(0,ctx.currentTime); g.gain.linearRampToValueAtTime(1,ctx.currentTime+2.5);
+  sess = {g:g, stop:null};
+  const m = MOODS[mood];
+  if(m.noise){ // soft breeze
+    const len = ctx.sampleRate*4, nb = ctx.createBuffer(1,len,ctx.sampleRate), d = nb.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    const src = ctx.createBufferSource(); src.buffer = nb; src.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=420; bp.Q.value=.6;
+    const ng = ctx.createGain(); ng.gain.value = m.noise;
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = .08; lg.gain.value = m.noise*.7;
+    lfo.connect(lg); lg.connect(ng.gain); src.connect(bp); bp.connect(ng); ng.connect(g);
+    src.start(); lfo.start(); sess.stop = ()=>{src.stop();lfo.stop();};
+  }
+}
+function tone(freq,t,dur,vol,type,attack,rel){
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+attack);
+  g.gain.setValueAtTime(vol,t+Math.max(attack,dur-rel)); g.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(g); g.connect(sess.g); o.start(t); o.stop(t+dur+.05);
+}
+function scheduleChord(t){
+  const m = MOODS[mood], c = m.chords[chordIdx % m.chords.length]; chordIdx++;
+  const L = m.len, att = Math.min(3.2, L/3);
+  tone(c.bass,t,L+3,m.bassVol,'sine',att,3);
+  c.notes.forEach(f=>{
+    tone(f,t,L+3,m.padVol,'triangle',att,3.2);
+    tone(f*1.004,t,L+3,m.padVol*.7,'sine',att,3.2);
+  });
+  const count = Math.floor((L-.5)/m.melStep);
+  for(let i=0;i<count;i++){
+    const f = c.mel[i % c.mel.length], mt = t + .8 + i*m.melStep + (m.melStep>1?Math.random()*.3:0);
+    tone(f,mt,m.melStep>1?3.8:1.6,m.melVol,m.melType,.06,m.melStep>1?3.2:1.2);
+  }
+}
+function pump(){
+  if(!musicOn) return;
+  while(nextChordTime < ctx.currentTime + 6){ scheduleChord(nextChordTime); nextChordTime += MOODS[mood].len; }
+}
+function startMusic(){
+  initAudio();
+  if(ctx.state==='suspended') ctx.resume();
+  musicOn = true; chordIdx = 0;
+  newSession(); nextChordTime = ctx.currentTime + .2;
+  pump(); clearInterval(schedTimer); schedTimer = setInterval(pump,1000);
+  master.gain.cancelScheduledValues(ctx.currentTime);
+  master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+  master.gain.linearRampToValueAtTime(MUSIC_LEVEL, ctx.currentTime+4);
+  updateMute();
+}
+function stopMusic(){
+  musicOn = false; clearInterval(schedTimer);
+  if(ctx){ master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0, ctx.currentTime+1.2); }
+  updateMute();
+}
+function updateMute(){
+  const b = document.getElementById('musicBtn');
+  b.textContent = musicOn ? '🎵 Music on' : '🎵 Music off';
+  b.setAttribute('aria-pressed', String(!musicOn));
+}
+
+function duck(on){
+  if(!ctx || !musicOn) return;
+  const t = ctx.currentTime, g = master.gain;
+  g.cancelScheduledValues(t); g.setValueAtTime(g.value,t);
+  g.linearRampToValueAtTime(on ? DUCK_LEVEL : MUSIC_LEVEL, t + (on ? .6 : 2.5));
+}
+
+/* ---------- Male voice reading (uses the visitor's own device voices, no audio files) ---------- */
+const hasSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+let voiceOn = true, maleVoice = null, voiceIsMale = false, speakToken = 0;
+const FEMALE = /female|zira|samantha|susan|hazel|karen|moira|victoria|fiona|tessa|serena|kate|allison|ava|joanna|salli|ivy|kendra|kimberly|amy|emma|nicky|catherine|libby|sonia|jenny|aria|natasha|clara|heera|veena/i;
+const MALE = /(\bmale\b|david|mark\b|guy\b|daniel|george|james|alex\b|fred\b|ryan|thomas|oliver|arthur|rishi|aaron|gordon|lee\b|eddy|reed|rocko|ralph|bruce|junior|tom\b|brian|matthew|justin|joey|russell|liam|davis|christopher|eric|roger|steffan|andrew|brandon|william|neil|prabhat)/i;
+function pickVoice(){
+  if(!hasSpeech) return;
+  const vs = speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+  if(!vs.length) return;
+  const score = v=>{
+    let n = 0;
+    if(MALE.test(v.name) && !FEMALE.test(v.name)) n += 10;
+    if(FEMALE.test(v.name)) n -= 10;
+    if(/en-GB|en-NG|en-ZA|en-AU|en-US/i.test(v.lang)) n += 1;
+    if(/natural|neural|online/i.test(v.name)) n += 4;
+    if(v.localService === false) n += 1;
+    return n;
+  };
+  vs.sort((a,b)=>score(b)-score(a));
+  maleVoice = vs[0]; voiceIsMale = score(vs[0]) >= 10;
+}
+if(hasSpeech){ pickVoice(); speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged',pickVoice); }
+
+function spokenRef(ref){
+  let r = ref.replace(/^1 /,'First ').replace(/^2 /,'Second ');
+  return r.replace(/(\d+):(\d+)-(\d+)/,'$1, verses $2 to $3').replace(/(\d+):(\d+)/,'$1, verse $2');
+}
+function cleanForSpeech(t){ return t.replace(/^\.\.\./,'').replace(/[()]/g,'').replace(/LORD/g,'Lord').replace(/JEHOVAH/g,'Jehovah').replace(/\s+/g,' ').trim(); }
+function greeting(){ const h = new Date().getHours(); return h<12 ? 'Good morning.' : h<18 ? 'Good afternoon.' : 'Good evening.'; }
+
+/* Build a lively delivery: greeting, the message sentence by sentence with rising energy, the verse, the reference, a closing blessing */
+function sentencesOf(t){ return t.match(/[^.!?]+[.!?]*/g).map(x=>x.trim()).filter(Boolean); }
+function buildScript(){
+  const base = voiceIsMale ? 0.98 : 0.7, L = LESSONS[idx];
+  const items = [{t: greeting()+' God has a word for you today!', rate:1.0, pitch:base+.06, pause:450}];
+  const ms = sentencesOf(entry[1]);
+  ms.forEach((x,i)=>{
+    const last = i === ms.length-1;
+    items.push({t:x.replace(/\.$/,'!'), rate: last ? .92 : .99, pitch: base + .05 + (i%2 ? .07 : 0) + (last ? .1 : 0), pause: last ? 900 : 350});
+  });
+  items.push({t:cleanForSpeech(entry[2]), rate:.88, pitch:base+.02, pause:350});
+  items.push({t:spokenRef(entry[3]), rate:.85, pitch:base+.03, pause:1100});
+  // ...then straight on into today's lesson
+  items.push({t:"And now, here is today's lesson.", rate:.97, pitch:base+.06, pause:900, on:()=>showPane(2,{extra:1.1})});
+  const ls = sentencesOf(L[0]);
+  ls.forEach((x,i)=>{
+    const last = i === ls.length-1;
+    items.push({t:x, rate: last ? .92 : .97, pitch: base + .05 + (i%2 ? .06 : 0) + (last ? .1 : 0), pause: last ? 900 : 350});
+  });
+  items.push({t:'This is backed by Scripture.', rate:.95, pitch:base+.03, pause:300});
+  items.push({t:cleanForSpeech(L[2]), rate:.88, pitch:base+.02, pause:350});
+  items.push({t:spokenRef(L[1]), rate:.85, pitch:base+.03, pause:900});
+  items.push({t:'You are loved. Be encouraged!', rate:.95, pitch:base+.18, pause:0});
+  return items;
+}
+function runSpeech(items){
+  if(!hasSpeech) return;
+  stopSpeech(false);
+  if(!maleVoice) pickVoice();
+  const myToken = ++speakToken;
+  duck(true);
+  const next = i=>{
+    if(myToken !== speakToken) return;
+    if(i >= items.length){ duck(false); return; }
+    const it = items[i];
+    if(it.on){ try{ it.on(); }catch(e){} }
+    let done = false;
+    const advance = ()=>{ if(done) return; done = true; clearTimeout(guard); setTimeout(()=>next(i+1), it.pause); };
+    const u = new SpeechSynthesisUtterance(it.t);
+    if(maleVoice){ u.voice = maleVoice; u.lang = maleVoice.lang; } else { u.lang = 'en-GB'; }
+    u.rate = it.rate; u.pitch = Math.max(.1,Math.min(2,it.pitch)); u.volume = 1;
+    u.onend = advance; u.onerror = advance;
+    const guard = setTimeout(advance, it.t.length*130 + 4000);   // safety if a browser never fires "end"
+    try{ speechSynthesis.speak(u); }catch(e){ advance(); }
+  };
+  next(0);
+}
+function speakToday(){ if(hasSpeech && voiceOn){ resetPane1(); runSpeech(buildScript()); } }
+function stopSpeech(restoreMusic){
+  speakToken++;
+  try{ hasSpeech && speechSynthesis.cancel(); }catch(e){}
+  if(restoreMusic !== false) duck(false);
+}
+function updateVoiceBtn(){
+  const b = document.getElementById('voiceBtn');
+  b.textContent = voiceOn ? '🔊 Voice on' : '🔇 Voice off';
+  b.setAttribute('aria-pressed', String(!voiceOn));
+}
+document.getElementById('voiceBtn').addEventListener('click',()=>{
+  if(!hasSpeech) return toast('Voice reading is not supported in this browser.','err');
+  voiceOn = !voiceOn; updateVoiceBtn();
+  if(voiceOn) speakToday(); else stopSpeech();
+});
+document.getElementById('listenBtn').addEventListener('click',()=>{
+  if(!hasSpeech) return toast('Voice reading is not supported in this browser.','err');
+  voiceOn = true; updateVoiceBtn(); speakToday();
+});
+document.getElementById('musicBtn').addEventListener('click',()=>{ musicOn ? stopMusic() : startMusic(); });
+document.getElementById('enterBtn').addEventListener('click',()=>enter(true));
+document.getElementById('silentBtn').addEventListener('click',()=>enter(false));
+window.addEventListener('pagehide',()=>stopSpeech());
+
+/* Share (works even where the browser blocks sharing/clipboard) */
+function copyText(text){
+  if(navigator.clipboard && window.isSecureContext){ return navigator.clipboard.writeText(text); }
+  return new Promise((res,rej)=>{
+    const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy') ? res() : rej(); }catch(e){ rej(e); } finally{ ta.remove(); }
+  });
+}
+function showModal(text){
+  const m=document.getElementById('copyModal'), a=document.getElementById('copyArea'); a.value=text; m.classList.add('show'); a.focus(); a.select();
+}
+document.getElementById('closeModal').addEventListener('click',()=>document.getElementById('copyModal').classList.remove('show'));
+document.getElementById('copyModal').addEventListener('click',e=>{ if(e.target.id==='copyModal') e.currentTarget.classList.remove('show'); });
+document.getElementById('shareBtn')?.addEventListener('click', async ()=>{
+  const text = `“${entry[2]}” — ${entry[3]}\n\n${entry[1]}\n\nWord for Today`;
+  if(navigator.share){
+    try{ await navigator.share({title:'Word for Today',text}); return; }catch(e){ if(e&&e.name==='AbortError') return; }
+  }
+  try{ await copyText(text); toast("Copied! Paste it to share today's word.",'ok'); }
+  catch(e){ showModal(text); }
+});
+
+/* ---------- Prayer form → Supabase ---------- */
+const form = document.getElementById('form'), statusEl = document.getElementById('status'), sendBtn = document.getElementById('sendBtn');
+function setStatus(msg,cls){
+  statusEl.textContent = msg; statusEl.className = cls||'';
+  if(msg){ statusEl.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+async function submitPrayer(e){
+  if(e) e.preventDefault();
+  setStatus('');
+  const name = form.name.value.trim(), email = form.email.value.trim(), request = form.request.value.trim();
+  if(form.website.value){ setStatus('Thank you. Your request has been received.','ok'); form.reset(); return; } // bot trap
+  if(!name) { form.name.focus(); return setStatus('Please enter your name.','err'); }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { form.email.focus(); return setStatus('Please enter a valid email address.','err'); }
+  if(!request) { form.request.focus(); return setStatus('Please tell us what you are going through.','err'); }
+  if(!document.getElementById('consent').checked) return setStatus('Please tick the box to confirm you agree.','err');
+  sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+  let to;
+  const timeout = new Promise((_,rej)=>{ to = setTimeout(()=>rej(Object.assign(new Error('timeout'),{name:'TimeoutError'})),15000); });
+  try{
+    const res = await Promise.race([fetch(SUPABASE_URL+'/rest/v1/prayer_requests',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({name,email,request})
+    }), timeout]);
+    if(!res.ok){ let d=''; try{d=(await res.json()).message||''}catch(_){} throw new Error('HTTP '+res.status+' '+d); }
+    setStatus('🙏 Thank you, '+name.split(' ')[0]+'. We are praying with you. You are not alone.','ok');
+    form.reset();
+  }catch(err){
+    console.error('Prayer request failed:',err);
+    setStatus(err.name==='TimeoutError' ? 'This is taking too long. Please check your connection and try again.'
+      : 'Sorry, your request could not be sent. Please try again in a moment.','err');
+  }finally{ clearTimeout(to); sendBtn.disabled = false; sendBtn.textContent = 'Send my request 🙏'; }
+}
+// Plain click handler: works even where the browser/preview blocks <form> submission
+sendBtn.addEventListener('click', submitPrayer);
+form.addEventListener('submit', e=>e.preventDefault());
+form.querySelectorAll('input[type=text],input[type=email]').forEach(i=>i.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); submitPrayer(); } }));
+
+</script>
+
+</body></html>
