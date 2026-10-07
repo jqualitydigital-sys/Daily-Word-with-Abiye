@@ -1,5 +1,12 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Word for Today</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word for Today – A Daily Message of Hope</title>
+<meta name="description" content="One short word of hope from the Bible, fresh every day. Be encouraged, reflect, and send us your prayer request.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -122,14 +129,15 @@ textarea{min-height:110px;resize:vertical}
   box-shadow:0 12px 30px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:all .35s;z-index:300;max-width:90vw;text-align:center}
 #toast.show{opacity:1;transform:translate(-50%,0)}#toast.err{background:#9B2C2C}#toast.ok{background:#2F6B4F}
 
-@media (max-width:560px){.brand{font-size:20px}.pill{padding:7px 11px;font-size:12.5px}.date{font-size:11.5px}}
+@media (max-width:560px){.brand{font-size:20px}.musicbar{gap:6px;flex-wrap:wrap}.pill{padding:8px 11px;font-size:12.5px;min-height:38px}.date{font-size:11.5px}.bottom .btn{min-height:46px}}
 @media (max-height:640px){.reflect{display:none}.rule{margin:10px auto}}
 @media (prefers-reduced-motion:reduce){
   .sky,.sun,.rays,.cloud,.stars i,.float,.verse q,#splash .cross{animation:none!important}
   .msg .w{animation-duration:.01s!important;animation-delay:0s!important}
 }
 </style>
-
+</head>
+<body>
 <div class="sky"></div><div class="sun"></div><div class="rays"></div>
 <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="cloud c4"></div>
 <div class="stars" id="stars" aria-hidden="true"></div>
@@ -149,6 +157,7 @@ textarea{min-height:110px;resize:vertical}
     <div class="musicbar">
       <button class="pill" id="listenBtn" type="button" aria-label="Listen again">▶ Listen</button>
       <button class="pill" id="voiceBtn" type="button" aria-pressed="false" aria-label="Turn voice on or off">🔊 Voice on</button>
+      <button class="pill" id="speedBtn" type="button" aria-label="Change reading speed">⏱ Normal</button>
       <button class="pill" id="musicBtn" type="button" aria-pressed="true" aria-label="Turn music on or off">🎵 Music off</button>
     </div>
   </div>
@@ -355,8 +364,33 @@ function enter(withSound){
   document.getElementById('splash').classList.add('hide');
   voiceOn = !!withSound; updateVoiceBtn();
   if(withSound) startMusic(); else updateMute();
-  setTimeout(revealMessage, withSound ? 5200 : 900);   // words appear as the voice reaches them
-  if(withSound) setTimeout(speakToday, 2200);   // music fades in first, then the voice joins; started after the tap so browsers allow sound
+  if(withSound && hasSpeech){ prepMessage(); setTimeout(speakToday, 2200); }   // music fades in first, then the voice joins; words appear as it speaks
+  else setTimeout(revealMessage, 900);
+}
+
+/* ----- Words on screen follow the voice's real pace ----- */
+let msPerChar = 75;                 // measured from the voice itself as it speaks
+let msgSpans = [], lessonSpans = [];
+const isPhone = /android|iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Mac/.test(navigator.platform));
+const SPEEDS = [{label:'🐢 Slow',m:.85},{label:'⏱ Normal',m:1},{label:'🐇 Fast',m:1.15}];
+let speedIdx = 1;
+function rateScale(){ return (isPhone ? .88 : 1) * SPEEDS[speedIdx].m; }   // phone voices read faster, so slow them a little
+function prepWords(el,text){
+  el.textContent = ''; const spans = [];
+  text.split(' ').forEach(w=>{ const sp = document.createElement('span'); sp.className='w'; sp.textContent=w; sp.style.animation='none'; el.appendChild(sp); el.appendChild(document.createTextNode(' ')); spans.push(sp); });
+  return spans;
+}
+function revealRange(spans,from,count,dur){   // fade words in evenly across the time the voice takes
+  const step = Math.max(.12, dur/Math.max(1,count));
+  for(let i=0;i<count;i++){ const sp = spans[from+i]; if(sp) sp.style.animation = 'wordin 1s ease '+(i*step)+'s forwards'; }
+}
+function revealAllNow(){
+  [msgSpans,lessonSpans].forEach(arr=>arr.forEach(sp=>{ sp.style.animation='none'; sp.style.opacity='1'; sp.style.transform='none'; }));
+  ['rule','verse','reflectWrap','rule2','verse2'].forEach(id=>document.getElementById(id).classList.add('show'));
+}
+function prepMessage(){
+  msgSpans = prepWords(document.getElementById('msg'), entry[1]);
+  ['rule','verse','reflectWrap'].forEach(id=>document.getElementById(id).classList.remove('show'));
 }
 
 /* Lesson pane: fills in, then fades in after the message */
@@ -391,7 +425,7 @@ function showPane(n,opts){
   from.classList.add('fade');
   paneTimers.push(setTimeout(()=>{
     from.hidden = true; to.hidden = false; to.classList.add('fade'); void to.offsetWidth; to.classList.remove('fade');
-    if(n===2) revealLesson((opts&&opts.extra)||0.4);
+    if(n===2 && !(opts&&opts.sync)) revealLesson((opts&&opts.extra)||0.4);
   },1300));
 }
 function resetPane1(){            // instant switch back to the message (used when replaying)
@@ -401,6 +435,7 @@ function resetPane1(){            // instant switch back to the message (used wh
 }
 document.getElementById('lessonBtn').addEventListener('click',()=>{
   stopSpeech();                    // a manual switch stops the voice so it never reads the wrong page
+  revealAllNow();
   if(paneNow===1) showPane(2,{extra:.4}); else showPane(1);
 });
 
@@ -446,13 +481,25 @@ const MOODS = {
     {bass:N.F2,notes:[N.A3,N.C4,N.F4],mel:[N.C5,N.F4*2,N.A5,N.F4*2,N.C5,N.F4*2,N.A5,N.C6]}]}
 };
 let ctx, master, bus, sess = null, musicOn = false, schedTimer = null, nextChordTime = 0, chordIdx = 0, mood = 'inspiring';
-const MUSIC_LEVEL = .28, DUCK_LEVEL = .08;   // music is turned down while the voice speaks
+const MUSIC_LEVEL = isPhone ? .75 : .28, DUCK_LEVEL = isPhone ? .24 : .08;   // music is turned down while the voice speaks
 
 function makeReverb(c){
   const len = c.sampleRate*4.5, buf = c.createBuffer(2,len,c.sampleRate);
   for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6);}
   const conv = c.createConvolver(); conv.buffer = buf; return conv;
 }
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+let keepAlive = null;
+function unlockAudio(){          // must run inside the tap: makes iPhones play web audio even with the silent switch on
+  try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+  try{
+    if(!keepAlive){ keepAlive = new Audio(SILENT_WAV); keepAlive.loop = true; keepAlive.setAttribute('playsinline',''); }
+    const pr = keepAlive.play(); if(pr && pr.catch) pr.catch(()=>{});
+  }catch(e){}
+}
+function wakeAudio(){ if(ctx && musicOn && ctx.state !== 'running'){ ctx.resume().catch(()=>{}); } }
+['pointerdown','touchend','click'].forEach(ev=>document.addEventListener(ev,wakeAudio,{passive:true}));
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) wakeAudio(); });
 function initAudio(){
   if(ctx) return;
   ctx = new (window.AudioContext||window.webkitAudioContext)();
@@ -460,8 +507,9 @@ function initAudio(){
   const dry = ctx.createGain(); dry.gain.value = .55;
   const wet = ctx.createGain(); wet.gain.value = .9;
   const rev = makeReverb(ctx);
-  bus = ctx.createBiquadFilter(); bus.type='lowpass'; bus.frequency.value=2200;
+  bus = ctx.createBiquadFilter(); bus.type='lowpass'; bus.frequency.value = isPhone ? 3600 : 2200;
   bus.connect(dry); bus.connect(rev); rev.connect(wet);
+  ctx.onstatechange = wakeAudio;
   dry.connect(master); wet.connect(master); master.connect(ctx.destination);
 }
 function newSession(){ // lets us fade one mood out while the next fades in
@@ -493,8 +541,9 @@ function tone(freq,t,dur,vol,type,attack,rel){
 function scheduleChord(t){
   const m = MOODS[mood], c = m.chords[chordIdx % m.chords.length]; chordIdx++;
   const L = m.len, att = Math.min(3.2, L/3);
-  tone(c.bass,t,L+3,m.bassVol,'sine',att,3);
+  tone(isPhone ? c.bass*2 : c.bass,t,L+3,isPhone ? m.bassVol*.6 : m.bassVol,'sine',att,3);   // phone speakers cannot play deep bass, so lift it an octave
   c.notes.forEach(f=>{
+    if(isPhone) tone(f*2,t,L+3,m.padVol*.7,'sine',att,3.2);   // brighter layer that small speakers can play
     tone(f,t,L+3,m.padVol,'triangle',att,3.2);
     tone(f*1.004,t,L+3,m.padVol*.7,'sine',att,3.2);
   });
@@ -509,8 +558,9 @@ function pump(){
   while(nextChordTime < ctx.currentTime + 6){ scheduleChord(nextChordTime); nextChordTime += MOODS[mood].len; }
 }
 function startMusic(){
+  unlockAudio();
   initAudio();
-  if(ctx.state==='suspended') ctx.resume();
+  if(ctx.state!=='running') ctx.resume().catch(()=>{});
   musicOn = true; chordIdx = 0;
   newSession(); nextChordTime = ctx.currentTime + .2;
   pump(); clearInterval(schedTimer); schedTimer = setInterval(pump,1000);
@@ -574,22 +624,28 @@ function sentencesOf(t){ return t.match(/[^.!?]+[.!?]*/g).map(x=>x.trim()).filte
 function buildScript(){
   const base = voiceIsMale ? 0.98 : 0.7, L = LESSONS[idx];
   const items = [{t: greeting()+' God has a word for you today!', rate:1.0, pitch:base+.06, pause:450}];
-  const ms = sentencesOf(entry[1]);
+  const ms = sentencesOf(entry[1]); let w0 = 0;
   ms.forEach((x,i)=>{
-    const last = i === ms.length-1;
-    items.push({t:x.replace(/\.$/,'!'), rate: last ? .92 : .99, pitch: base + .05 + (i%2 ? .07 : 0) + (last ? .1 : 0), pause: last ? 900 : 350});
+    const last = i === ms.length-1, from = w0, n = x.split(' ').length; w0 += n;
+    items.push({t:x.replace(/\.$/,'!'), rate: last ? .92 : .99, pitch: base + .05 + (i%2 ? .07 : 0) + (last ? .1 : 0), pause: last ? 900 : 350,
+      on:est=>revealRange(msgSpans,from,n,est*.9)});
   });
-  items.push({t:cleanForSpeech(entry[2]), rate:.88, pitch:base+.02, pause:350});
-  items.push({t:spokenRef(entry[3]), rate:.85, pitch:base+.03, pause:1100});
+  items.push({t:cleanForSpeech(entry[2]), rate:.88, pitch:base+.02, pause:350, on:()=>{ document.getElementById('rule').classList.add('show'); document.getElementById('verse').classList.add('show'); }});
+  items.push({t:spokenRef(entry[3]), rate:.85, pitch:base+.03, pause:1100, on:()=>document.getElementById('reflectWrap').classList.add('show')});
   // ...then straight on into today's lesson
-  items.push({t:"And now, here is today's lesson.", rate:.97, pitch:base+.06, pause:900, on:()=>showPane(2,{extra:1.1})});
-  const ls = sentencesOf(L[0]);
+  items.push({t:"And now, here is today's lesson.", rate:.97, pitch:base+.06, pause:900, on:()=>{
+    lessonSpans = prepWords(document.getElementById('lessonText'), L[0]);
+    document.getElementById('rule2').classList.remove('show'); document.getElementById('verse2').classList.remove('show');
+    showPane(2,{sync:true});
+  }});
+  const ls = sentencesOf(L[0]); let l0 = 0;
   ls.forEach((x,i)=>{
-    const last = i === ls.length-1;
-    items.push({t:x, rate: last ? .92 : .97, pitch: base + .05 + (i%2 ? .06 : 0) + (last ? .1 : 0), pause: last ? 900 : 350});
+    const last = i === ls.length-1, from = l0, n = x.split(' ').length; l0 += n;
+    items.push({t:x, rate: last ? .92 : .97, pitch: base + .05 + (i%2 ? .06 : 0) + (last ? .1 : 0), pause: last ? 900 : 350,
+      on:est=>revealRange(lessonSpans,from,n,est*.9)});
   });
   items.push({t:'This is backed by Scripture.', rate:.95, pitch:base+.03, pause:300});
-  items.push({t:cleanForSpeech(L[2]), rate:.88, pitch:base+.02, pause:350});
+  items.push({t:cleanForSpeech(L[2]), rate:.88, pitch:base+.02, pause:350, on:()=>{ document.getElementById('rule2').classList.add('show'); document.getElementById('verse2').classList.add('show'); }});
   items.push({t:spokenRef(L[1]), rate:.85, pitch:base+.03, pause:900});
   items.push({t:'You are loved. Be encouraged!', rate:.95, pitch:base+.18, pause:0});
   return items;
@@ -603,20 +659,31 @@ function runSpeech(items){
   const next = i=>{
     if(myToken !== speakToken) return;
     if(i >= items.length){ duck(false); return; }
-    const it = items[i];
-    if(it.on){ try{ it.on(); }catch(e){} }
-    let done = false;
-    const advance = ()=>{ if(done) return; done = true; clearTimeout(guard); setTimeout(()=>next(i+1), it.pause); };
+    wakeAudio();
+    const it = items[i], eff = Math.max(.3,Math.min(2,it.rate*rateScale()));
+    const est = it.t.length*msPerChar/eff/1000;            // how long this line should take, in seconds
+    if(it.on){ try{ it.on(est); }catch(e){} }
+    let done = false, started = false, t0 = 0;
+    const advance = ()=>{ if(done) return; done = true; clearTimeout(guard); clearTimeout(quiet); setTimeout(()=>next(i+1), it.pause); };
     const u = new SpeechSynthesisUtterance(it.t);
     if(maleVoice){ u.voice = maleVoice; u.lang = maleVoice.lang; } else { u.lang = 'en-GB'; }
-    u.rate = it.rate; u.pitch = Math.max(.1,Math.min(2,it.pitch)); u.volume = 1;
-    u.onend = advance; u.onerror = advance;
-    const guard = setTimeout(advance, it.t.length*130 + 4000);   // safety if a browser never fires "end"
+    u.rate = eff; u.pitch = Math.max(.1,Math.min(2,it.pitch)); u.volume = 1;
+    u.onstart = ()=>{ started = true; t0 = performance.now(); };
+    u.onend = ()=>{
+      if(started && it.t.length > 18){                     // learn this voice's real pace so the words keep up with it
+        const m = (performance.now()-t0)/it.t.length*eff;
+        if(m>35 && m<220) msPerChar = msPerChar*.5 + m*.5;
+      }
+      advance();
+    };
+    u.onerror = advance;
+    const guard = setTimeout(advance, it.t.length*160 + 5000);                    // safety if a browser never fires "end"
+    const quiet = setTimeout(()=>{ if(!started){ clearTimeout(guard); setTimeout(advance, est*1000); } }, 2000); // no sound started: carry on at reading pace
     try{ speechSynthesis.speak(u); }catch(e){ advance(); }
   };
   next(0);
 }
-function speakToday(){ if(hasSpeech && voiceOn){ resetPane1(); runSpeech(buildScript()); } }
+function speakToday(){ if(hasSpeech && voiceOn){ resetPane1(); prepMessage(); runSpeech(buildScript()); } }
 function stopSpeech(restoreMusic){
   speakToken++;
   try{ hasSpeech && speechSynthesis.cancel(); }catch(e){}
@@ -630,12 +697,15 @@ function updateVoiceBtn(){
 document.getElementById('voiceBtn').addEventListener('click',()=>{
   if(!hasSpeech) return toast('Voice reading is not supported in this browser.','err');
   voiceOn = !voiceOn; updateVoiceBtn();
-  if(voiceOn) speakToday(); else stopSpeech();
+  if(voiceOn) speakToday(); else { stopSpeech(); revealAllNow(); }
 });
 document.getElementById('listenBtn').addEventListener('click',()=>{
   if(!hasSpeech) return toast('Voice reading is not supported in this browser.','err');
   voiceOn = true; updateVoiceBtn(); speakToday();
 });
+function updateSpeedBtn(){ document.getElementById('speedBtn').textContent = SPEEDS[speedIdx].label; }
+if(isPhone){ speedIdx = 1; }
+document.getElementById('speedBtn').addEventListener('click',()=>{ speedIdx = (speedIdx+1)%SPEEDS.length; updateSpeedBtn(); toast('Reading speed: '+SPEEDS[speedIdx].label.replace(/^\S+ /,''),'ok'); });
 document.getElementById('musicBtn').addEventListener('click',()=>{ musicOn ? stopMusic() : startMusic(); });
 document.getElementById('enterBtn').addEventListener('click',()=>enter(true));
 document.getElementById('silentBtn').addEventListener('click',()=>enter(false));
@@ -703,5 +773,5 @@ form.addEventListener('submit', e=>e.preventDefault());
 form.querySelectorAll('input[type=text],input[type=email]').forEach(i=>i.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); submitPrayer(); } }));
 
 </script>
-
-</body></html>
+</body>
+</html>
