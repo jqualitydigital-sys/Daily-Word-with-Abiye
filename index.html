@@ -135,6 +135,8 @@ textarea{min-height:110px;resize:vertical}
   .sky,.sun,.rays,.cloud,.stars i,.float,.verse q,#splash .cross{animation:none!important}
   .msg .w{animation-duration:.01s!important;animation-delay:0s!important}
 }
+#hint{text-align:center;color:#FFF3D6;font-weight:700;letter-spacing:.06em;font-size:14px;padding:6px 0;text-shadow:0 1px 8px rgba(0,0,0,.6);animation:hintPulse 2.4s ease-in-out infinite}
+@keyframes hintPulse{0%,100%{opacity:.55}50%{opacity:1}}
 </style>
 </head>
 <body>
@@ -143,24 +145,10 @@ textarea{min-height:110px;resize:vertical}
 <div class="stars" id="stars" aria-hidden="true"></div>
 <div class="scrim"></div>
 
-<div id="splash" role="dialog" aria-label="Welcome">
-  <div class="cross" aria-hidden="true">✝</div>
-  <h1 class="serif">Word for Today</h1>
-  <p>Take a quiet moment. Your word of hope is ready, read to you in a warm male voice with uplifting music.</p>
-  <button class="btn" id="enterBtn">Enter and listen 🎧</button>
-  <button class="link" id="silentBtn">Enter without sound</button>
-</div>
-
 <div class="app">
   <div class="top">
     <div class="brand serif"><span>✦</span> Daily Word with Abiye</div>
-    <div class="musicbar">
-      <button class="pill" id="listenBtn" type="button" aria-label="Listen again">▶ Listen</button>
-      <button class="pill" id="voiceBtn" type="button" aria-pressed="false" aria-label="Turn voice on or off">🔊 Voice on</button>
-      <button class="pill" id="speedBtn" type="button" aria-label="Change reading speed">⏱ Normal</button>
-      <button class="pill" id="musicBtn" type="button" aria-pressed="true" aria-label="Turn music on or off">🎵 Music off</button>
-    </div>
-  </div>
+</div>
 
   <main class="stage">
    <div class="pane" id="pane1">
@@ -181,6 +169,7 @@ textarea{min-height:110px;resize:vertical}
    </div>
   </main>
 
+  <div id="hint" hidden>Tap anywhere to hear today's word</div>
   <div class="bottom">
     <button class="btn ghost" id="lessonBtn" type="button">💡 Today's lesson</button>
   </div>
@@ -359,15 +348,6 @@ function revealMessage(){
 }
 function setGreeting(){ document.getElementById('greet').textContent = greeting().replace('.',''); }
 setGreeting();
-function enter(withSound){
-  setGreeting();
-  document.getElementById('splash').classList.add('hide');
-  voiceOn = !!withSound; updateVoiceBtn();
-  if(withSound) startMusic(); else updateMute();
-  if(withSound && hasSpeech){ prepMessage(); setTimeout(speakToday, 2200); }   // music fades in first, then the voice joins; words appear as it speaks
-  else setTimeout(revealMessage, 900);
-}
-
 /* ----- Words on screen follow the voice's real pace ----- */
 let msPerChar = 75;                 // measured from the voice itself as it speaks
 let msgSpans = [], lessonSpans = [];
@@ -481,6 +461,7 @@ const MOODS = {
     {bass:N.F2,notes:[N.A3,N.C4,N.F4],mel:[N.C5,N.F4*2,N.A5,N.F4*2,N.C5,N.F4*2,N.A5,N.C6]}]}
 };
 let ctx, master, bus, sess = null, musicOn = false, schedTimer = null, nextChordTime = 0, chordIdx = 0, mood = 'inspiring';
+let VOICE_ON = false;       // true while the voice is speaking (music stays low)
 const MUSIC_LEVEL = isPhone ? .75 : .28, DUCK_LEVEL = isPhone ? .24 : .08;   // music is turned down while the voice speaks
 
 function makeReverb(c){
@@ -566,7 +547,7 @@ function startMusic(){
   pump(); clearInterval(schedTimer); schedTimer = setInterval(pump,1000);
   master.gain.cancelScheduledValues(ctx.currentTime);
   master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-  master.gain.linearRampToValueAtTime(MUSIC_LEVEL, ctx.currentTime+4);
+  master.gain.linearRampToValueAtTime(VOICE_ON ? DUCK_LEVEL : MUSIC_LEVEL, ctx.currentTime+4);
   updateMute();
 }
 function stopMusic(){
@@ -577,12 +558,11 @@ function stopMusic(){
   updateMute();
 }
 function updateMute(){
-  const b = document.getElementById('musicBtn');
-  b.textContent = musicOn ? '🎵 Music on' : '🎵 Music off';
-  b.setAttribute('aria-pressed', String(!musicOn));
+  /* no on-screen music control any more */
 }
 
 function duck(on){
+  VOICE_ON = on;
   if(!ctx || !musicOn) return;
   const t = ctx.currentTime, g = master.gain;
   g.cancelScheduledValues(t); g.setValueAtTime(g.value,t);
@@ -591,7 +571,7 @@ function duck(on){
 
 /* ---------- Male voice reading (uses the visitor's own device voices, no audio files) ---------- */
 const hasSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-let voiceOn = true, maleVoice = null, voiceIsMale = false, speakToken = 0;
+let ttsStarted = false, voiceOn = true, maleVoice = null, voiceIsMale = false, speakToken = 0;
 const FEMALE = /female|zira|samantha|susan|hazel|karen|moira|victoria|fiona|tessa|serena|kate|allison|ava|joanna|salli|ivy|kendra|kimberly|amy|emma|nicky|catherine|libby|sonia|jenny|aria|natasha|clara|heera|veena/i;
 const MALE = /(\bmale\b|david|mark\b|guy\b|daniel|george|james|alex\b|fred\b|ryan|thomas|oliver|arthur|rishi|aaron|gordon|lee\b|eddy|reed|rocko|ralph|bruce|junior|tom\b|brian|matthew|justin|joey|russell|liam|davis|christopher|eric|roger|steffan|andrew|brandon|william|neil|prabhat)/i;
 function pickVoice(){
@@ -668,7 +648,7 @@ function runSpeech(items){
     const u = new SpeechSynthesisUtterance(it.t);
     if(maleVoice){ u.voice = maleVoice; u.lang = maleVoice.lang; } else { u.lang = 'en-GB'; }
     u.rate = eff; u.pitch = Math.max(.1,Math.min(2,it.pitch)); u.volume = 1;
-    u.onstart = ()=>{ started = true; t0 = performance.now(); };
+    u.onstart = ()=>{ started = true; ttsStarted = true; t0 = performance.now(); };
     u.onend = ()=>{
       if(started && it.t.length > 18){                     // learn this voice's real pace so the words keep up with it
         const m = (performance.now()-t0)/it.t.length*eff;
@@ -685,31 +665,104 @@ function runSpeech(items){
 }
 function speakToday(){ if(hasSpeech && voiceOn){ resetPane1(); prepMessage(); runSpeech(buildScript()); } }
 function stopSpeech(restoreMusic){
-  speakToken++;
+  speakToken++; flowToken++;
+  try{ voice.pause(); voice.onended = null; }catch(e){}
+  stopTimeline();
   try{ hasSpeech && speechSynthesis.cancel(); }catch(e){}
   if(restoreMusic !== false) duck(false);
 }
-function updateVoiceBtn(){
-  const b = document.getElementById('voiceBtn');
-  b.textContent = voiceOn ? '🔊 Voice on' : '🔇 Voice off';
-  b.setAttribute('aria-pressed', String(!voiceOn));
-}
-document.getElementById('voiceBtn').addEventListener('click',()=>{
-  if(!hasSpeech) return toast('Voice reading is not supported in this browser.','err');
-  voiceOn = !voiceOn; updateVoiceBtn();
-  if(voiceOn) speakToday(); else { stopSpeech(); revealAllNow(); }
-});
-document.getElementById('listenBtn').addEventListener('click',()=>{
-  if(!hasSpeech) return toast('Voice reading is not supported in this browser.','err');
-  voiceOn = true; updateVoiceBtn(); speakToday();
-});
-function updateSpeedBtn(){ document.getElementById('speedBtn').textContent = SPEEDS[speedIdx].label; }
-if(isPhone){ speedIdx = 1; }
-document.getElementById('speedBtn').addEventListener('click',()=>{ speedIdx = (speedIdx+1)%SPEEDS.length; updateSpeedBtn(); toast('Reading speed: '+SPEEDS[speedIdx].label.replace(/^\S+ /,''),'ok'); });
-document.getElementById('musicBtn').addEventListener('click',()=>{ musicOn ? stopMusic() : startMusic(); });
-document.getElementById('enterBtn').addEventListener('click',()=>enter(true));
-document.getElementById('silentBtn').addEventListener('click',()=>enter(false));
 window.addEventListener('pagehide',()=>stopSpeech());
+
+/* ---------- Recorded male voice (audio/dayNN.mp3), starts by itself ---------- */
+const DAYNUM = idx + 1;
+const voice = new Audio(); voice.preload = 'auto'; voice.setAttribute('playsinline','');   // ONE audio element, so phones keep it unlocked
+let TIMINGS = null, recordedOK = null, TL = null, flowToken = 0, audioStartedOK = false, gestureDone = false;
+const pad2 = n => String(n).padStart(2,'0');
+function wordRanges(text){ let from = 0; return sentencesOf(text).map(x=>{ const n = x.split(' ').length, r = [from,n]; from += n; return r; }); }
+const MR = wordRanges(entry[1]), LR = wordRanges(LESSONS[idx][0]);
+function greetFile(){ const h = new Date().getHours(); return 'audio/greet_'+(h<12?'morning':h<18?'afternoon':'evening')+'.mp3'; }
+async function loadTimings(){
+  if(TIMINGS || recordedOK === false) return TIMINGS;
+  try{
+    const r = await fetch('audio/timings.json'); if(!r.ok) throw new Error('no timings');
+    TIMINGS = (await r.json())[String(DAYNUM)]; if(!TIMINGS) throw new Error('no day');
+    recordedOK = true; fetch('audio/day'+pad2(DAYNUM)+'.mp3').catch(()=>{});   // warm the cache while the greeting plays
+  }catch(e){ recordedOK = false; }
+  return TIMINGS;
+}
+function fireSeg(sg){                       // what to show at each moment of the recording
+  const k = sg[0], i = sg[1], dur = sg[3]-sg[2];
+  if(k==='m') revealRange(msgSpans, MR[i][0], MR[i][1], dur*.92);
+  else if(k==='v'){ document.getElementById('rule').classList.add('show'); document.getElementById('verse').classList.add('show'); }
+  else if(k==='r') document.getElementById('reflectWrap').classList.add('show');
+  else if(k==='li'){
+    lessonSpans = prepWords(document.getElementById('lessonText'), LESSONS[idx][0]);
+    document.getElementById('rule2').classList.remove('show'); document.getElementById('verse2').classList.remove('show');
+    showPane(2,{sync:true});
+  }
+  else if(k==='l') revealRange(lessonSpans, LR[i][0], LR[i][1], dur*.92);
+  else if(k==='sv'){ document.getElementById('rule2').classList.add('show'); document.getElementById('verse2').classList.add('show'); }
+}
+function stopTimeline(){ if(TL){ cancelAnimationFrame(TL.raf); TL = null; } }
+function finishFlow(){ stopTimeline(); duck(false); }
+function startTimeline(mode){               // mode "audio": follows the recording's own clock; "virtual": same pace without sound
+  stopTimeline();
+  const segs = TIMINGS, fired = new Set(), t0 = performance.now(), end = segs[segs.length-1][3];
+  TL = {raf:0};
+  const tick = ()=>{
+    if(!TL) return;
+    const t = mode==='audio' ? voice.currentTime : (performance.now()-t0)/1000;
+    segs.forEach((sg,i)=>{ if(!fired.has(i) && t >= sg[2]-.03){ fired.add(i); try{ fireSeg(sg); }catch(e){} } });
+    if(mode==='virtual' && t >= end+.3){ finishFlow(); return; }
+    TL.raf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+async function startFlow(){
+  stopSpeech(false);
+  const tok = ++flowToken;
+  resetPane1(); prepMessage();
+  if(!TIMINGS && recordedOK !== false) await loadTimings();
+  if(tok !== flowToken) return;
+  if(recordedOK){
+    voice.onended = null; voice.src = greetFile();
+    let ok = false;
+    try{ await voice.play(); ok = true; }catch(e){ ok = false; }       // refused when the browser has not yet allowed sound
+    if(tok !== flowToken) return;
+    if(ok){
+      audioStartedOK = true; duck(true);
+      voice.onended = ()=>{
+        if(tok !== flowToken) return;
+        voice.onended = ()=>{ if(tok === flowToken) finishFlow(); };
+        voice.src = 'audio/day'+pad2(DAYNUM)+'.mp3';
+        voice.play().then(()=>{ if(tok === flowToken) startTimeline('audio'); }).catch(()=>{ if(tok === flowToken) startTimeline('virtual'); });
+      };
+      return;
+    }
+    setTimeout(()=>{ if(tok === flowToken) startTimeline('virtual'); }, 3300);   // sound not allowed yet: show it at reading pace
+  } else {
+    if(hasSpeech){ speakToday(); }                                                 // no recordings found: use the device's own voice
+    else setTimeout(revealMessage, 600);
+  }
+}
+function soundNeeded(){ return (recordedOK ? !audioStartedOK : !ttsStarted) || !ctx || ctx.state !== 'running'; }
+function checkHint(){ if(!gestureDone && soundNeeded()) document.getElementById('hint').hidden = false; }
+function onFirstGesture(e){
+  if(gestureDone) return; gestureDone = true;
+  ['pointerdown','touchend','keydown','click'].forEach(ev=>document.removeEventListener(ev,onFirstGesture,true));
+  document.getElementById('hint').hidden = true;
+  unlockAudio();
+  if(!musicOn || !ctx || ctx.state !== 'running') startMusic();
+  const onLessonBtn = e && e.target && e.target.closest && e.target.closest('#lessonBtn');
+  const voiceOK = recordedOK ? audioStartedOK : ttsStarted;
+  if(!voiceOK && !onLessonBtn) startFlow();           // start again from the top, now with sound
+}
+function tryAutoMusic(){ try{ initAudio(); ctx.resume().catch(()=>{}); setTimeout(()=>{ if(ctx.state === 'running' && !musicOn) startMusic(); },350); }catch(e){} }
+
+/* Open straight into the page: begin automatically, and if the browser blocks sound, the first tap anywhere starts it */
+['pointerdown','touchend','keydown','click'].forEach(ev=>document.addEventListener(ev,onFirstGesture,true));
+setGreeting(); tryAutoMusic(); startFlow(); setTimeout(checkHint,2500);
+
 
 /* Share (works even where the browser blocks sharing/clipboard) */
 function copyText(text){
