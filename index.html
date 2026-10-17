@@ -1457,7 +1457,7 @@ function soundNeeded(){ return (recordedOK ? !audioStartedOK : !ttsStarted) || !
 function checkHint(){ if(!gestureDone && soundNeeded()) document.getElementById('hint').hidden = false; }
 function onFirstGesture(e){
   if(gestureDone) return; gestureDone = true;
-  ['pointerdown','touchend','keydown','click'].forEach(ev=>document.removeEventListener(ev,onFirstGesture,true));
+  ['touchend','pointerup','keydown','click'].forEach(ev=>document.removeEventListener(ev,onFirstGesture,true));
   document.getElementById('hint').hidden = true;
   hideEnd();
   unlockAudio();
@@ -1469,7 +1469,7 @@ function onFirstGesture(e){
 function tryAutoMusic(){ try{ initAudio(); ctx.resume().catch(()=>{}); setTimeout(()=>{ if(ctx.state === 'running' && !musicOn) startMusic(); },350); }catch(e){} }
 
 /* Open straight into the page: begin automatically, and if the browser blocks sound, the first tap anywhere starts it */
-['pointerdown','touchend','keydown','click'].forEach(ev=>document.addEventListener(ev,onFirstGesture,true));
+['touchend','pointerup','keydown','click'].forEach(ev=>document.addEventListener(ev,onFirstGesture,true));
 setGreeting(); tryAutoMusic(); startFlow(); setTimeout(checkHint,900);
 
 
